@@ -1,77 +1,42 @@
-<<<<<<< HEAD
-# React + TypeScript + Vite
+# ZK Secure - Private Data Oracle
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+ZK Secure is a decentralized application bridging real-world, private Web2 data into Web3 via fully verifiable Zero-Knowledge proofs (zkTLS). It enables users to verify highly sensitive metrics—such as their personal bank balances, identity documents, and professional credentials—without ever natively revealing their passwords, login tokens, or unredacted financial information on-chain.
 
-Currently, two official plugins are available:
+## The Architecture
+1. **Discovery**: Authenticate and configure cryptographic constraints locally.
+2. **TLS Fetch**: Secure multiparty computation handshake extracts encrypted web responses inside a local sandbox.
+3. **Local Prover**: An ephemeral Circom circuit generates a snarkjs truth-proof affirming the logic constraint (e.g. Account Balance > $5,000).
+4. **Blockchain Anchor**: The generated truth-value is instantly notarized as a transaction hash to the Algorand Blockchain via Pera Wallet.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Supported Verification Modules
+* **Financial Assets**: Confirm bank liquidity minimums for whitelist tiering.
+* **Digital Identity**: Prove 18+ adulthood via Aadhaar zero-knowledge parsing.
+* **Professional Tier**: Assert specific title classifications on LinkedIn.
+* **Social Influence**: Verify minimum baseline Twitter network followers.
 
-## React Compiler
+## Tech Stack
+* **Vite + React (TypeScript)**
+* **Framer Motion** - Cinematic animations & cyber-theming
+* **Pera Wallet Connect** - Algorand Web3 Signatures
+* **AlgoSDK** - L1 Node Connectivity (TestNet API)
+* **Tailwind & Vanilla CSS** - Glassmorphic overlays
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Local Development
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install --legacy-peer-deps
+   ```
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Production Deployment (Vercel)
+Built specifically to natively compile onto Edge services:
+```bash
+npx vercel --prod
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-=======
-# event-registration
->>>>>>> d5d8a60733fe52fd0f92c401c902f81b97ab5ac0
+## Security Assumptions
+This UI dashboard represents a "Mock MVP" implementation of a zkTLS relay. Production implementations require an encrypted AWS Nitro Enclave running a localized proxy to genuinely derive the Web2 TLS handshakes.
