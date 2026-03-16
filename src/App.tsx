@@ -2,15 +2,17 @@ import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from
 import { ZkOracleInterface } from './components/ZkOracleInterface';
 import { Dashboard } from './components/Dashboard';
 import { ParticleBackground } from './components/ParticleBackground';
-import { ShieldCheck, Check, FileText, Network, Database, Globe } from 'lucide-react';
-import { useState } from 'react';
+import { ShieldCheck, Check, FileText, Network, Database, Globe, Copy, ExternalLink, LogOut, ChevronDown, LayoutDashboard } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Hero } from './components/Hero';
+import { reconnectWallet, peraWallet, disconnectWallet, getStoredWalletAddress } from './lib/walletService';
 import { WalletConnect } from './components/WalletConnect';
 import Docs from './pages/Docs';
 
-function MainLayout({ children, wallet }: any) {
+function MainLayout({ children, wallet, onDisconnect }: any) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleNav = (target: string) => {
     if (target === 'landing') navigate('/');
@@ -53,13 +55,82 @@ function MainLayout({ children, wallet }: any) {
 
           <div>
             {wallet ? (
-              <div className="status-pill status-success" onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer', padding: '0.6rem 1.2rem', fontWeight: 800, fontFamily: 'monospace' }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 10px #10b981' }} />
-                {wallet.slice(0, 10)}...{wallet.slice(-6)}
+              <div style={{ position: 'relative' }}>
+                <div 
+                  className="status-pill status-success" 
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)} 
+                  style={{ cursor: 'pointer', padding: '0.6rem 1.2rem', fontWeight: 800, fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 10px #10b981' }} />
+                  {wallet.slice(0, 10)}...{wallet.slice(-6)}
+                  <ChevronDown size={14} />
+                </div>
+                
+                {isDropdownOpen && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '110%',
+                    right: 0,
+                    background: 'rgba(10, 10, 10, 0.95)',
+                    border: '1px solid var(--glass-border)',
+                    borderRadius: '12px',
+                    padding: '0.5rem',
+                    minWidth: '220px',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+                    zIndex: 50,
+                    backdropFilter: 'blur(10px)',
+                  }}>
+                    <button 
+                      onClick={() => {
+                        navigate('/dashboard');
+                        setIsDropdownOpen(false);
+                      }}
+                      style={{ width: '100%', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', borderRadius: '8px' }}
+                      onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <LayoutDashboard size={16} color="var(--primary)" /> Dashboard
+                    </button>
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(wallet);
+                        setIsDropdownOpen(false);
+                      }}
+                      style={{ width: '100%', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', borderRadius: '8px' }}
+                      onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <Copy size={16} /> Copy Wallet Address
+                    </button>
+                    <button 
+                      onClick={() => {
+                        window.open(`https://testnet.algoexplorer.io/address/${wallet}`, '_blank');
+                        setIsDropdownOpen(false);
+                      }}
+                      style={{ width: '100%', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', borderRadius: '8px' }}
+                      onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <ExternalLink size={16} /> View on AlgoExplorer
+                    </button>
+                    <div style={{ height: '1px', background: 'var(--glass-border)', margin: '0.25rem 0' }} />
+                    <button 
+                      onClick={() => {
+                        onDisconnect();
+                        setIsDropdownOpen(false);
+                      }}
+                      style={{ width: '100%', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', borderRadius: '8px', fontWeight: 600 }}
+                      onMouseOver={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <LogOut size={16} /> Disconnect Wallet
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <button onClick={() => navigate('/connect')} className="btn btn-primary nav-cta">
-                Start Verification
+                Connect Wallet
               </button>
             )}
           </div>
@@ -134,7 +205,18 @@ function MainLayout({ children, wallet }: any) {
 }
 
 function App() {
-  const [wallet, setWallet] = useState<string | null>(null);
+  const [wallet, setWallet] = useState<string | null>(getStoredWalletAddress());
+
+  useEffect(() => {
+    reconnectWallet().then(addr => {
+      if (addr) setWallet(addr);
+    });
+    
+    // @ts-ignore
+    peraWallet.connector?.on('disconnect', () => {
+      setWallet(null);
+    });
+  }, []);
 
   const handleWalletConnected = (address: string, navigate: any) => {
     setWallet(address);
@@ -143,35 +225,40 @@ function App() {
     }, 1500);
   };
 
+  const handleDisconnect = () => {
+    disconnectWallet();
+    setWallet(null);
+  };
+
   return (
     <Router>
       <Routes>
         <Route path="/" element={
-          <MainLayout wallet={wallet}>
+          <MainLayout wallet={wallet} onDisconnect={handleDisconnect}>
             <HeroRouteWrapper />
           </MainLayout>
         } />
         
         <Route path="/connect" element={
-          <MainLayout wallet={wallet}>
+          <MainLayout wallet={wallet} onDisconnect={handleDisconnect}>
             <ConnectRouteWrapper onConnected={handleWalletConnected} />
           </MainLayout>
         } />
 
         <Route path="/dashboard" element={
-          <MainLayout wallet={wallet}>
+          <MainLayout wallet={wallet} onDisconnect={handleDisconnect}>
             <DashboardRouteWrapper wallet={wallet} />
           </MainLayout>
         } />
 
         <Route path="/oracle" element={
-          <MainLayout wallet={wallet}>
+          <MainLayout wallet={wallet} onDisconnect={handleDisconnect}>
             <OracleRouteWrapper wallet={wallet} />
           </MainLayout>
         } />
 
         <Route path="/docs" element={
-          <MainLayout wallet={wallet}>
+          <MainLayout wallet={wallet} onDisconnect={handleDisconnect}>
             <Docs />
           </MainLayout>
         } />

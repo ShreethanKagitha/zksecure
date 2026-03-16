@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { generateCreditScoreProof } from '../lib/zkProver';
 import type { ZKResponse } from '../lib/zkProver';
 import { fetchWeb2BankData } from '../lib/web2DataService';
+
 import { relayProofToBlockchain } from '../lib/oracleService';
 import { Terminal } from './Terminal';
 
@@ -83,10 +84,18 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
       // 3. SUBMITTING STAGE
       setStep('submitting');
       setProgress(0);
-      console.log(`[PIPELINE] Starting SUBMITTING. Using result:`, result);
+      
+      const localWallet = localStorage.getItem("walletAddress");
+      const activeWalletAddress = localWallet && localWallet !== "null" && localWallet !== "undefined" ? localWallet : walletAddress;
+      
+      console.log("Anchoring proof with wallet:", activeWalletAddress);
+      
+      if (!activeWalletAddress || activeWalletAddress === "null" || activeWalletAddress === "undefined") {
+        throw new Error("Please connect your Pera Wallet before anchoring the proof.");
+      }
       
       const submitInterval = setInterval(() => setProgress(prev => Math.min(prev + 2, 95)), 50);
-      const relayResult = await relayProofToBlockchain(walletAddress, result);
+      const relayResult = await relayProofToBlockchain(activeWalletAddress, result);
       clearInterval(submitInterval);
       
       console.log(`[PIPELINE] RELAY RESULT:`, relayResult);
@@ -173,12 +182,20 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
               </p>
             </div>
 
+            {!walletAddress && (
+              <div style={{ marginBottom: '2rem', padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', color: '#ef4444', textAlign: 'center', fontWeight: 600 }}>
+                Please connect a Pera Wallet to anchor the proof.
+              </div>
+            )}
+
             <div style={{ display: 'grid', gap: '2rem', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))' }}>
               {PROVIDERS.map(p => (
                 <button 
                   key={p.id}
                   className="glass-card"
-                  onClick={() => handleSelect(p)}
+                  onClick={() => {
+                    if (walletAddress) handleSelect(p);
+                  }}
                   style={{ 
                     flexDirection: 'column', 
                     padding: '2rem',
@@ -186,7 +203,8 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
                     height: '100%',
                     alignItems: 'flex-start',
                     textAlign: 'left',
-                    cursor: 'pointer',
+                    cursor: walletAddress ? 'pointer' : 'not-allowed',
+                    opacity: walletAddress ? 1 : 0.5,
                     background: 'rgba(5, 5, 5, 0.4)'
                   }}
                 >

@@ -1,4 +1,5 @@
 import algosdk from 'algosdk';
+import { peraWallet } from './walletService';
 
 export interface BlockchainResult {
   txId: string;
@@ -6,67 +7,89 @@ export interface BlockchainResult {
   blockNumber: number;
 }
 
+const ALGOD_SERVER = 'https://testnet-api.algonode.cloud';
+const ALGOD_PORT = '';
+const ALGOD_TOKEN = '';
+
+const algodClient = new algosdk.Algodv2(ALGOD_TOKEN, ALGOD_SERVER, ALGOD_PORT);
+
 /**
- * Simulates anchoring a ZK-Proof to the Algorand blockchain.
- * In production, this would call a Smart Contract application.
+ * Anchors a ZK-Proof to the Algorand blockchain via Pera Wallet.
  */
 export const anchorProofOnChain = async (
   walletAddress: string,
   proof: any,
   publicSignals: any[]
 ): Promise<BlockchainResult> => {
-  console.log(`[BlockchainService] Preparing Algorand transaction for ${walletAddress}...`);
-  console.log(`[BlockchainService] Proof Payload Size: ${JSON.stringify(proof).length} bytes`);
+  console.log("Anchoring proof with wallet:", walletAddress);
   
-  // Basic algosdk usage to demonstrate integration
-  const encoder = new TextEncoder();
-  const noteContent = JSON.stringify({ 
-    action: "VERIFY_ZKTLS", 
-    proofSignature: proof.pi_a?.[0] || "mock_sig",
-    signals: publicSignals 
-  });
-
-  // Construct a dummy transaction object using algosdk types
-  const params = {
-    fee: 1000,
-    firstRound: 1000,
-    lastRound: 2000,
-    genesisHash: "SGO1GKSzyE7IEPItTxCBywTZ6s4WoGTOsy9i1SAtnPs=",
-    genesisID: "testnet-v1.0"
-  };
-
-  if (!walletAddress) {
-    throw new Error("Invalid or unlinked Web3 Wallet Address. Please connect a valid Pera Wallet to anchor the proof.");
+  if (!walletAddress || walletAddress === "null" || walletAddress === "undefined") {
+    throw new Error("Please connect your Pera Wallet before anchoring the proof.");
   }
 
-  let txn;
+  console.log(`[BlockchainService] Proof Payload Size: ${JSON.stringify(proof).length} bytes`);
+  
   try {
-    txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-      from: walletAddress,
-      to: walletAddress,
+    const encoder = new TextEncoder();
+    const noteContent = JSON.stringify({ 
+      action: "VERIFY_ZKTLS", 
+      proofSignature: proof.pi_a?.[0] || "mock_sig",
+      signals: publicSignals 
+    });
+
+    // Fetch suggested transaction parameters
+    const params = await algodClient.getTransactionParams().do();
+
+    const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      sender: walletAddress,
+      receiver: walletAddress,
       amount: 0,
       note: encoder.encode(noteContent),
       suggestedParams: params
-    } as any);
+    });
+
+    console.log(`[BlockchainService] Transaction built: ${txn.type}`);
+
+    // Assuming peraWallet is already connected and initialized
+    const txGroup = [{ txn, signers: [walletAddress] }];
+    console.log(`[BlockchainService] Requesting signature from Pera Wallet...`);
+    const signedTxns = await peraWallet.signTransaction([txGroup]);
+
+    console.log(`[BlockchainService] Broadcasting transaction...`);
+    const payloadToBroadcast = Array.isArray(signedTxns) ? signedTxns[0] : signedTxns;
+    const response = await algodClient.sendRawTransaction(payloadToBroadcast).do() as any;
+    
+    // Safely extract transaction ID (Pera response vs. local computation fallback)
+    const txId = response.txId || txn.txID().toString();
+    console.log(`[BlockchainService] Transaction broadcasted successfully. Computed TxID: ${txId}`, response);
+
+    // Wait for confirmation (increased to 20 rounds to gracefully handle TestNet variance)
+    const confirmedTxn = await algosdk.waitForConfirmation(algodClient, txId, 20);
+    
+    return {
+      txId: txId,
+      status: 'SUCCESS',
+      blockNumber: confirmedTxn.confirmedRound || (confirmedTxn as any)['confirmed-round']
+    };
   } catch (error: any) {
+    console.error("[BlockchainService] Error anchoring proof:", error);
     const errorMsg = error.message?.toLowerCase() || "";
-    if (errorMsg.includes("address") || errorMsg.includes("base32") || errorMsg.includes("null or undefined")) {
-       throw new Error("Invalid or unlinked Web3 Wallet Address. Please connect a valid Pera Wallet to anchor the proof.");
+    
+    // Expose explicit bad formatting if the wallet address string was corrupted
+    if (errorMsg.includes("address") || errorMsg.includes("base32")) {
+       throw new Error(`The provided wallet address is incorrectly formatted: ${walletAddress}`);
     }
-    throw error;
+
+    // Explicitly handle 0-balance overspend (can't pay 0.001 ALGO transaction fee)
+    if (errorMsg.includes("overspend")) {
+       throw new Error("Your Testnet wallet has 0 ALGO and cannot pay the 0.001 ALGO transaction fee. Please fund it using the Algorand Testnet Dispenser (https://bank.testnet.algorand.network) and try again.");
+    }
+
+    // Handle user rejection explicitly if it comes from Pera Wallet
+    if (errorMsg.includes("reject") || errorMsg.includes("cancel")) {
+       throw new Error("Transaction signature was declined by the user in Pera Wallet.");
+    }
+    throw new Error(error.message || "Failed to anchor proof on chain.");
   }
-
-  console.log(`[BlockchainService] Transaction built: ${txn.type}`);
-
-  // Simulate signing and submission
-  await new Promise(resolve => setTimeout(resolve, 2500));
-  
-  const mockTxId = "ALGO_" + Math.random().toString(36).substring(2, 12).toUpperCase();
-  
-  return {
-    txId: mockTxId,
-    status: 'SUCCESS',
-    blockNumber: Math.floor(Math.random() * 1000000)
-  };
 };
 

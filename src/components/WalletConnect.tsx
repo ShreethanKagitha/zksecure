@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Wallet, Loader2, CheckCircle2, ChevronRight, ShieldCheck } from 'lucide-react';
-import { PeraWalletConnect } from '@perawallet/connect';
+import { connectWallet, disconnectWallet, peraWallet } from '../lib/walletService';
 import { motion } from 'framer-motion';
-
-const peraWallet = new PeraWalletConnect();
 
 interface WalletConnectProps {
   onConnected: (address: string) => void;
@@ -33,20 +31,21 @@ export function WalletConnect({ onConnected }: WalletConnectProps) {
   }, [onConnected]);
 
   const handleDisconnectWalletClick = () => {
-    peraWallet.disconnect();
+    disconnectWallet();
     setConnectedAddress(null);
   };
 
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      const newAccounts = await peraWallet.connect();
+      const account = await connectWallet();
+      // @ts-ignore
       peraWallet.connector?.on('disconnect', handleDisconnectWalletClick);
-      if (newAccounts.length > 0) {
+      if (account) {
         setIsConnecting(false);
-        setConnectedAddress(newAccounts[0]);
+        setConnectedAddress(account);
         setTimeout(() => {
-          onConnected(newAccounts[0]);
+          onConnected(account);
         }, 1500);
       }
     } catch (error) {
@@ -102,6 +101,19 @@ export function WalletConnect({ onConnected }: WalletConnectProps) {
           ? 'Secure bridge established. Initializing cryptographic environment for your private session.'
           : 'Link your primary Web3 wallet to authorize zkTLS probes and cryptographically anchor your real-world data.'}
       </p>
+
+      {!connected && (
+        <div style={{ marginBottom: '2rem', padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', textAlign: 'center' }}>
+           <p style={{ color: '#ef4444', fontWeight: 800, margin: 0, fontSize: '0.95rem' }}>CRITICAL STEP</p>
+           <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', marginTop: '0.5rem', marginBottom: 0 }}>
+             Ensure your Pera Mobile App is set to <strong>TESTNET</strong> before scanning.<br/>
+             <span style={{ opacity: 0.8 }}>(Settings → Developer Settings → Node Settings)</span>
+           </p>
+           <p style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.5rem', marginBottom: 0, fontStyle: 'italic' }}>
+             *If you scan while on Mainnet, Pera will display "DApp is not responding".
+           </p>
+        </div>
+      )}
 
       {!connected && (
         <button 
