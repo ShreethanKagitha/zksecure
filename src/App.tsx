@@ -179,13 +179,13 @@ function MainLayout({ children, wallet, onDisconnect }: any) {
               <button onClick={() => navigate('/docs')} className="footer-link" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
                 <FileText size={18} /> Docs
               </button>
-              <a href="https://github.com/kgoud3621/event-registration" target="_blank" rel="noopener noreferrer" className="footer-link">
+              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="footer-link">
                 <Network size={18} /> GitHub
               </a>
               <a href="/whitepaper.pdf" className="footer-link">
                 <Database size={18} /> Whitepaper
               </a>
-              <a href="https://twitter.com/kgoud3621" target="_blank" rel="noopener noreferrer" className="footer-link">
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="footer-link">
                 <Globe size={18} /> Twitter
               </a>
             </div>
