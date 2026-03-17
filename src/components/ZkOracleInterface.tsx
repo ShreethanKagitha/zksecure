@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShieldAlert, Database, FileDigit, Cpu, CheckCircle, AlertTriangle, ArrowLeft, Briefcase, Share2, Check, Zap, Globe, Lock } from 'lucide-react';
+import { ShieldAlert, Database, FileDigit, Cpu, CheckCircle, AlertTriangle, ArrowLeft, Briefcase, Share2, Check, Zap, Globe, Lock, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { generateCreditScoreProof } from '../lib/zkProver';
 import type { ZKResponse } from '../lib/zkProver';
@@ -313,7 +313,7 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
             }}>
               <CheckCircle size={48} color="#10b981" />
             </div>
-            <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>Attestation Fixed</h2>
+            <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>Proof Anchored Successfully</h2>
             <p style={{ marginBottom: '3.5rem', maxWidth: '600px', margin: '0 auto', fontSize: '1.1rem', color: 'var(--text-dim)', lineHeight: 1.6 }}>
               Success. Your private web session has been cryptographically notarized. The zk-proof is now anchored to the global trust layer.
             </p>
@@ -331,9 +331,22 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
                 <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-dim)' }}>ANCHOR WALLET</span>
                 <span style={{ fontSize: '1rem', fontFamily: 'monospace', fontWeight: 700, color: 'white' }}>{walletAddress}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', marginBottom: '1.5rem' }}>
                 <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-dim)' }}>ALGORAND TX ID</span>
-                <span style={{ fontSize: '0.9rem', fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary)' }}>{onChainId || '0x...'}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <span style={{ fontSize: '0.9rem', fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary)' }}>{onChainId || '0x...'}</span>
+                  {onChainId && (
+                    <a 
+                      href={`https://testnet.algoexplorer.io/tx/${onChainId}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="btn btn-secondary"
+                      style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}
+                    >
+                      <ExternalLink size={14} /> View on AlgoExplorer
+                    </a>
+                  )}
+                </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', marginBottom: '1.5rem' }}>
                 <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-dim)' }}>PROOF VALIDITY</span>
