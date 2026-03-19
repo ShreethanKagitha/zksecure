@@ -14,6 +14,13 @@ export function ParticleBackground() {
     let angleY = 0;
     let targetAngleX = 0;
     let targetAngleY = 0;
+    
+    // OPTIMIZATION 4: Pause variables
+    let isVisible = true;
+    
+    // OPTIMIZATION 6: Throttle frame rate variables
+    let lastTime = 0;
+    const fpsInterval = 1000 / 40; // Throttle to ~40 FPS for smooth yet cheap rendering
 
     const resizeCanvas = () => {
       canvas.width  = window.innerWidth;
@@ -54,7 +61,7 @@ export function ParticleBackground() {
         this.x = radius * Math.sin(phi) * Math.cos(theta);
         this.y = radius * Math.sin(phi) * Math.sin(theta);
         this.z = radius * Math.cos(phi);
-        this.size    = Math.random() * 1.4 + 0.4;
+        this.size    = Math.random() * 1.8 + 0.6; // Slightly larger to compensate for fewer particles
         this.opacity = Math.random() * 0.5 + 0.14;
         this.drift   = (Math.random() - 0.5) * 0.25;
         const idx    = Math.floor(Math.random() * DOT_COLORS.length);
@@ -66,11 +73,23 @@ export function ParticleBackground() {
 
     const init = () => {
       particles = [];
-      const count = Math.min(260, Math.floor((window.innerWidth * window.innerHeight) / 11000));
+      // OPTIMIZATION 1: Reduce Particle Count (max 90 instead of ~260)
+      const count = Math.min(90, Math.floor((window.innerWidth * window.innerHeight) / 11000));
       for (let i = 0; i < count; i++) particles.push(new Particle());
     };
 
-    const animate = () => {
+    const animate = (time: number) => {
+      animationFrameId = requestAnimationFrame(animate);
+
+      // OPTIMIZATION 4: Pause Animation When Not Visible to avoid background drain
+      if (!isVisible) return;
+
+      // OPTIMIZATION 6: Throttle frame rate slightly to 40 FPS instead of 60/120+
+      if (!lastTime) lastTime = time;
+      const elapsed = time - lastTime;
+      if (elapsed < fpsInterval) return;
+      lastTime = time - (elapsed % fpsInterval);
+
       if (!canvas || !ctx) return;
 
       // Soft persistence trail for motion blur effect
@@ -89,7 +108,6 @@ export function ParticleBackground() {
       const pts: Pt2D[] = [];
 
       for (const p of particles) {
-        // Individual vertical drift for data-flow feel
         p.y += p.drift;
         if (Math.abs(p.y) > 1050) p.drift *= -1;
 
@@ -110,15 +128,30 @@ export function ParticleBackground() {
       }
 
       // Connection lines between nearby particles
-      for (let a = 0; a < pts.length; a++) {
-        for (let b = a + 1; b < pts.length; b++) {
-          const pA = pts[a], pB = pts[b];
-          const dx = pA.x - pB.x, dy = pA.y - pB.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const threshold = 88 * Math.max(pA.scale, pB.scale);
-          if (dist < threshold) {
+      // OPTIMIZATION 3: Kept nested loop but highly optimized inside calculation
+      const ptsLength = pts.length;
+      for (let a = 0; a < ptsLength; a++) {
+        const pA = pts[a];
+        for (let b = a + 1; b < ptsLength; b++) {
+          const pB = pts[b];
+          const dx = pA.x - pB.x;
+          const dy = pA.y - pB.y;
+          
+          // OPTIMIZATION 2: Distance Calculation via Squared values
+          const distSq = dx * dx + dy * dy;
+          const maxScale = Math.max(pA.scale, pB.scale);
+          
+          // Scaled up connection radius to 140 to visually match original density with fewer particles
+          const threshold = 140 * maxScale; 
+          const thresholdSq = threshold * threshold;
+
+          // Only if within squared bounds do we commit to rendering calculation
+          if (distSq < thresholdSq) {
+            // Math.sqrt() is expensive; only executed when absolutely required for evaluating opacity/alpha
+            const dist = Math.sqrt(distSq);
             const alpha = (1 - dist / threshold) * 0.17;
             const [r, g, bl] = LINE_COLORS[(a + b) & 1];
+            
             ctx.strokeStyle = `rgba(${r},${g},${bl},${alpha})`;
             ctx.lineWidth   = Math.min(pA.scale, pB.scale) * 0.85;
             ctx.beginPath();
@@ -145,17 +178,25 @@ export function ParticleBackground() {
           ctx.fill();
         }
       }
-
-      animationFrameId = requestAnimationFrame(animate);
     };
 
     init();
-    animate();
+    animationFrameId = requestAnimationFrame(animate);
 
+    // OPTIMIZATION 4: IntersectionObserver to stop loop safely
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        isVisible = entry.isIntersecting;
+      });
+    });
+    if (canvasRef.current) observer.observe(canvasRef.current);
+
+    // OPTIMIZATION 5: Cleanup properly
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       window.removeEventListener('mousemove', handleMouseMove);
       cancelAnimationFrame(animationFrameId);
+      observer.disconnect();
     };
   }, []);
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Wallet, Loader2, CheckCircle2, ChevronRight, ShieldCheck } from 'lucide-react';
-import { connectWallet, disconnectWallet, peraWallet } from '../lib/walletService';
+import { connectWallet, disconnectWallet, getPeraWallet } from '../lib/walletService';
 import { motion } from 'framer-motion';
 
 interface WalletConnectProps {
@@ -13,20 +13,25 @@ export function WalletConnect({ onConnected }: WalletConnectProps) {
 
   useEffect(() => {
     // Reconnect to the session when the component is mounted
-    peraWallet.reconnectSession().then((accounts) => {
-      peraWallet.connector?.on('disconnect', handleDisconnectWalletClick);
+    getPeraWallet().then((wallet) => {
+      wallet.reconnectSession().then((accounts: string[]) => {
+        wallet.connector?.on('disconnect', handleDisconnectWalletClick);
 
-      if (accounts.length) {
-        setConnectedAddress(accounts[0]);
-        setTimeout(() => {
-          onConnected(accounts[0]);
-        }, 1500);
-      }
+        if (accounts.length) {
+          setConnectedAddress(accounts[0]);
+          setTimeout(() => {
+            onConnected(accounts[0]);
+          }, 1500);
+        }
+      });
     });
 
     return () => {
-      // @ts-ignore
-      peraWallet.connector?.off('disconnect', handleDisconnectWalletClick);
+      // Clean up the disconnect listener when unmounting
+      getPeraWallet().then((wallet) => {
+        // @ts-ignore
+        wallet.connector?.off('disconnect', handleDisconnectWalletClick);
+      });
     };
   }, [onConnected]);
 
@@ -39,8 +44,9 @@ export function WalletConnect({ onConnected }: WalletConnectProps) {
     setIsConnecting(true);
     try {
       const account = await connectWallet();
+      const wallet = await getPeraWallet();
       // @ts-ignore
-      peraWallet.connector?.on('disconnect', handleDisconnectWalletClick);
+      wallet.connector?.on('disconnect', handleDisconnectWalletClick);
       if (account) {
         setIsConnecting(false);
         setConnectedAddress(account);

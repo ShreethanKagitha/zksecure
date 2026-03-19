@@ -1,5 +1,4 @@
-import algosdk from 'algosdk';
-import { peraWallet } from './walletService';
+import { getPeraWallet } from './walletService';
 
 export interface BlockchainResult {
   txId: string;
@@ -11,8 +10,6 @@ const ALGOD_SERVER = 'https://testnet-api.algonode.cloud';
 const ALGOD_PORT = '';
 const ALGOD_TOKEN = '';
 
-const algodClient = new algosdk.Algodv2(ALGOD_TOKEN, ALGOD_SERVER, ALGOD_PORT);
-
 /**
  * Anchors a ZK-Proof to the Algorand blockchain via Pera Wallet.
  */
@@ -21,6 +18,10 @@ export const anchorProofOnChain = async (
   proof: any,
   publicSignals: any[]
 ): Promise<BlockchainResult> => {
+  // 1. Dynamic import for algosdk to remove it from initial bundle
+  const algosdk = await import('algosdk');
+  const algodClient = new algosdk.Algodv2(ALGOD_TOKEN, ALGOD_SERVER, ALGOD_PORT);
+
   console.log("Anchoring proof with wallet:", walletAddress);
   
   if (!walletAddress || walletAddress === "null" || walletAddress === "undefined") {
@@ -50,10 +51,11 @@ export const anchorProofOnChain = async (
 
     console.log(`[BlockchainService] Transaction built: ${txn.type}`);
 
-    // Assuming peraWallet is already connected and initialized
+    // 2. Fetch the wallet instance lazily
+    const wallet = await getPeraWallet();
     const txGroup = [{ txn, signers: [walletAddress] }];
     console.log(`[BlockchainService] Requesting signature from Pera Wallet...`);
-    const signedTxns = await peraWallet.signTransaction([txGroup]);
+    const signedTxns = await wallet.signTransaction([txGroup]);
 
     console.log(`[BlockchainService] Broadcasting transaction...`);
     const payloadToBroadcast = Array.isArray(signedTxns) ? signedTxns[0] : signedTxns;

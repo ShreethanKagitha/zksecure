@@ -1,13 +1,16 @@
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { ZkOracleInterface } from './components/ZkOracleInterface';
-import { Dashboard } from './components/Dashboard';
 import { ParticleBackground } from './components/ParticleBackground';
 import { ShieldCheck, Check, FileText, Network, Database, Globe, Copy, ExternalLink, LogOut, ChevronDown, LayoutDashboard } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import { Hero } from './components/Hero';
 import { reconnectWallet, peraWallet, disconnectWallet, getStoredWalletAddress } from './lib/walletService';
-import { WalletConnect } from './components/WalletConnect';
 import Docs from './pages/Docs';
+
+// Performance Optimization: React Code Splitting
+// Lazy load heavy components so they do not block the initial rendering of the Hero landing page.
+const WalletConnect = lazy(() => import('./components/WalletConnect').then(m => ({ default: m.WalletConnect })));
+const Dashboard = lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
+const ZkOracleInterface = lazy(() => import('./components/ZkOracleInterface').then(m => ({ default: m.ZkOracleInterface })));
 
 function MainLayout({ children, wallet, onDisconnect }: any) {
   const navigate = useNavigate();
@@ -157,7 +160,10 @@ function MainLayout({ children, wallet, onDisconnect }: any) {
             </div>
           </div>
         )}
-        {children}
+        {/* Wrap routes in Suspense for code-splitting fallback */}
+        <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '5rem 0', color: 'var(--text-dim)' }}>Loading interface...</div>}>
+          {children}
+        </Suspense>
       </main>
 
       <footer className="footer-wrapper">
