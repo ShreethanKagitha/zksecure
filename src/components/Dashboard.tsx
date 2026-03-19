@@ -1,5 +1,7 @@
 import { History, PlusCircle, ShieldCheck, Database, AlertCircle, Award, ExternalLink, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { ProofExplorer } from './ProofExplorer';
 
 interface DashboardProps {
   walletAddress: string;
@@ -7,12 +9,24 @@ interface DashboardProps {
 }
 
 export function Dashboard({ walletAddress, onStartVerify }: DashboardProps) {
+  // State to simulate blockchain response for demo
+  const [proofData, setProofData] = useState<{ txId: string, round: number | string, timestamp: string } | null>(null);
+
   // Mock history data
   const history = [
     { id: 1, type: 'HDFC Balance Check', status: 'Verified', date: '2024-03-12', tx: '0x8a...f1' },
     { id: 2, type: 'Aadhaar Personhood', status: 'Verified', date: '2024-03-10', tx: '0x32...e9' },
     { id: 3, type: 'X (Twitter) Followers', status: 'Verified', date: '2024-03-08', tx: '0x9c...4a' },
   ];
+
+  const handleAnchorProof = () => {
+    // Set a mock proof object to simulate an anchored proof transaction
+    setProofData({
+      txId: "TEST123ABC",
+      round: 345678,
+      timestamp: new Date().toLocaleTimeString()
+    });
+  };
 
   return (
     <motion.div 
@@ -31,10 +45,24 @@ export function Dashboard({ walletAddress, onStartVerify }: DashboardProps) {
             </p>
           </div>
         </div>
-        <button className="btn btn-primary" onClick={onStartVerify} style={{ padding: '0.75rem 2rem', fontSize: '1rem' }}>
-          <Zap size={18} fill="currentColor" /> Initiate Probe
-        </button>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <button className="btn" onClick={handleAnchorProof} style={{ padding: '0.75rem 2rem', fontSize: '1rem', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.4)', color: '#3B82F6', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit' }}>
+            Anchor Proof
+          </button>
+          <button className="btn btn-primary" onClick={onStartVerify} style={{ padding: '0.75rem 2rem', fontSize: '1rem' }}>
+            <Zap size={18} fill="currentColor" /> Initiate Probe
+          </button>
+        </div>
       </div>
+
+      {/* Render ProofExplorer only when proof data exists */}
+      {proofData && (
+        <ProofExplorer 
+          txId={proofData.txId} 
+          round={proofData.round} 
+          timestamp={proofData.timestamp} 
+        />
+      )}
 
       <div className="stats-grid mb-10">
         <div className="stat-card">

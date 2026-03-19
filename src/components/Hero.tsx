@@ -487,6 +487,30 @@ export function Hero({ onStart }: HeroProps) {
               <span className="section-title-glow">Ecosystem Powered by Truth</span>
             </h2>
           </div>
+
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            style={{ padding: '3rem', marginBottom: '3.5rem', background: 'rgba(59, 130, 246, 0.05)', borderRadius: '24px', border: '1px solid rgba(59, 130, 246, 0.2)', position: 'relative', overflow: 'hidden', boxShadow: '0 0 40px rgba(59, 130, 246, 0.05)' }}
+          >
+            <div style={{ position: 'absolute', top: '-15%', right: '-5%', opacity: 0.04 }}><Database size={350} color="#3B82F6" /></div>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '2rem', position: 'relative', zIndex: 1 }}>
+               <div style={{ padding: '1.25rem', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '20px', color: '#3B82F6', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+                  <Database size={40} />
+               </div>
+               <div>
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 800, letterSpacing: '0.1em', color: '#3B82F6', textTransform: 'uppercase', background: 'rgba(59, 130, 246, 0.15)', padding: '0.25rem 0.75rem', borderRadius: '100px' }}>Core Application</span>
+                 </div>
+                 <h3 style={{ color: 'white', fontSize: '2.25rem', fontWeight: 900, marginBottom: '1rem', letterSpacing: '-0.02em' }}>Indian Market Context: Credit Scoring</h3>
+                 <p style={{ fontSize: '1.25rem', color: 'var(--text-dim)', lineHeight: 1.6, maxWidth: '85%' }}>
+                   Revolutionizing localized DeFi. Our zkTLS infrastructure enables flawless credit scoring by mathematically proving bank balance eligibility, completely <strong>without revealing sensitive bank history details</strong> to any party.
+                 </p>
+               </div>
+            </div>
+          </motion.div>
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2.5rem' }}>
             <div className="glass-card section-reveal delay-1" style={{ position: 'relative' }}>
               <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', opacity: 0.1 }}>

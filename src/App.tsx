@@ -1,9 +1,10 @@
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { ParticleBackground } from './components/ParticleBackground';
 import { ShieldCheck, Check, FileText, Network, Database, Globe, Copy, ExternalLink, LogOut, ChevronDown, LayoutDashboard } from 'lucide-react';
-import { useState, useEffect, Suspense, lazy } from 'react';
+import { useState, Suspense, lazy } from 'react';
+import { useWallet } from '@txnlab/use-wallet-react';
+import { WalletButton } from '@txnlab/use-wallet-ui-react';
 import { Hero } from './components/Hero';
-import { reconnectWallet, peraWallet, disconnectWallet, getStoredWalletAddress } from './lib/walletService';
 import Docs from './pages/Docs';
 
 // Performance Optimization: React Code Splitting
@@ -132,9 +133,9 @@ function MainLayout({ children, wallet, onDisconnect }: any) {
                 )}
               </div>
             ) : (
-              <button onClick={() => navigate('/connect')} className="btn btn-primary nav-cta">
-                Connect Wallet
-              </button>
+              <div className="wui-custom-trigger">
+                 <WalletButton />
+              </div>
             )}
           </div>
         </div>
@@ -211,60 +212,48 @@ function MainLayout({ children, wallet, onDisconnect }: any) {
 }
 
 function App() {
-  const [wallet, setWallet] = useState<string | null>(getStoredWalletAddress());
+  const { activeAddress, activeWallet } = useWallet();
 
-  useEffect(() => {
-    reconnectWallet().then(addr => {
-      if (addr) setWallet(addr);
-    });
-    
-    // @ts-ignore
-    peraWallet.connector?.on('disconnect', () => {
-      setWallet(null);
-    });
-  }, []);
-
-  const handleWalletConnected = (address: string, navigate: any) => {
-    setWallet(address);
+  const handleWalletConnected = (_address: string, navigate: any) => {
+    // Navigate smoothly to dashboard
     setTimeout(() => {
       navigate('/dashboard');
     }, 1500);
   };
 
   const handleDisconnect = () => {
-    disconnectWallet();
-    setWallet(null);
+    activeWallet?.disconnect();
   };
 
   return (
     <Router>
       <Routes>
         <Route path="/" element={
-          <MainLayout wallet={wallet} onDisconnect={handleDisconnect}>
+          <MainLayout wallet={activeAddress} onDisconnect={handleDisconnect}>
             <HeroRouteWrapper />
           </MainLayout>
         } />
         
         <Route path="/connect" element={
-          <MainLayout wallet={wallet} onDisconnect={handleDisconnect}>
+          <MainLayout wallet={activeAddress} onDisconnect={handleDisconnect}>
             <ConnectRouteWrapper onConnected={handleWalletConnected} />
           </MainLayout>
         } />
 
         <Route path="/dashboard" element={
-          <MainLayout wallet={wallet} onDisconnect={handleDisconnect}>
-            <DashboardRouteWrapper wallet={wallet} />
+          <MainLayout wallet={activeAddress} onDisconnect={handleDisconnect}>
+            <DashboardRouteWrapper wallet={activeAddress} />
           </MainLayout>
         } />
 
         <Route path="/oracle" element={
-          <MainLayout wallet={wallet} onDisconnect={handleDisconnect}>
-            <OracleRouteWrapper wallet={wallet} />
+          <MainLayout wallet={activeAddress} onDisconnect={handleDisconnect}>
+            <OracleRouteWrapper wallet={activeAddress} />
           </MainLayout>
         } />
 
         <Route path="/docs" element={
-          <MainLayout wallet={wallet} onDisconnect={handleDisconnect}>
+          <MainLayout wallet={activeAddress} onDisconnect={handleDisconnect}>
             <Docs />
           </MainLayout>
         } />

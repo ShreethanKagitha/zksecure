@@ -1,71 +1,30 @@
-import { useState, useEffect } from 'react';
-import { Wallet, Loader2, CheckCircle2, ChevronRight, ShieldCheck } from 'lucide-react';
-import { connectWallet, disconnectWallet, getPeraWallet } from '../lib/walletService';
+import { useEffect } from 'react';
+import { Wallet, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useWallet } from '@txnlab/use-wallet-react';
+import { WalletButton } from '@txnlab/use-wallet-ui-react';
 
 interface WalletConnectProps {
   onConnected: (address: string) => void;
 }
 
 export function WalletConnect({ onConnected }: WalletConnectProps) {
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [connectedAddress, setConnectedAddress] = useState<string | null>(null);
+  const { activeAddress } = useWallet();
 
   useEffect(() => {
-    // Reconnect to the session when the component is mounted
-    getPeraWallet().then((wallet) => {
-      wallet.reconnectSession().then((accounts: string[]) => {
-        wallet.connector?.on('disconnect', handleDisconnectWalletClick);
-
-        if (accounts.length) {
-          setConnectedAddress(accounts[0]);
-          setTimeout(() => {
-            onConnected(accounts[0]);
-          }, 1500);
-        }
-      });
-    });
-
-    return () => {
-      // Clean up the disconnect listener when unmounting
-      getPeraWallet().then((wallet) => {
-        // @ts-ignore
-        wallet.connector?.off('disconnect', handleDisconnectWalletClick);
-      });
-    };
-  }, [onConnected]);
-
-  const handleDisconnectWalletClick = () => {
-    disconnectWallet();
-    setConnectedAddress(null);
-  };
-
-  const handleConnect = async () => {
-    setIsConnecting(true);
-    try {
-      const account = await connectWallet();
-      const wallet = await getPeraWallet();
-      // @ts-ignore
-      wallet.connector?.on('disconnect', handleDisconnectWalletClick);
-      if (account) {
-        setIsConnecting(false);
-        setConnectedAddress(account);
-        setTimeout(() => {
-          onConnected(account);
-        }, 1500);
-      }
-    } catch (error) {
-      console.error('Pera Wallet connection failed:', error);
-      setIsConnecting(false);
+    if (activeAddress) {
+      setTimeout(() => {
+        onConnected(activeAddress);
+      }, 1500);
     }
-  };
+  }, [activeAddress, onConnected]);
 
   const formatAddress = (addr: string) => {
     if (!addr) return '';
     return `${addr.slice(0, 10)}...${addr.slice(-6)}`;
   };
 
-  const connected = !!connectedAddress;
+  const connected = !!activeAddress;
 
   return (
     <motion.div 
@@ -90,13 +49,6 @@ export function WalletConnect({ onConnected }: WalletConnectProps) {
             <Wallet size={48} color="var(--primary)" />
           )}
         </div>
-        {isConnecting && (
-          <motion.div 
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-            style={{ position: 'absolute', inset: -12, borderRadius: '40px', border: '3px solid var(--primary)', borderTopColor: 'transparent', borderBottomColor: 'transparent' }}
-          ></motion.div>
-        )}
       </div>
 
       <h2 style={{ fontSize: '2.25rem', fontWeight: 800, marginBottom: '1.25rem', color: 'white' }}>
@@ -109,31 +61,9 @@ export function WalletConnect({ onConnected }: WalletConnectProps) {
       </p>
 
       {!connected && (
-        <div style={{ marginBottom: '2rem', padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', textAlign: 'center' }}>
-           <p style={{ color: '#ef4444', fontWeight: 800, margin: 0, fontSize: '0.95rem' }}>CRITICAL STEP</p>
-           <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', marginTop: '0.5rem', marginBottom: 0 }}>
-             Ensure your Pera Mobile App is set to <strong>TESTNET</strong> before scanning.<br/>
-             <span style={{ opacity: 0.8 }}>(Settings → Developer Settings → Node Settings)</span>
-           </p>
-           <p style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.5rem', marginBottom: 0, fontStyle: 'italic' }}>
-             *If you scan while on Mainnet, Pera will display "DApp is not responding".
-           </p>
+        <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }} className="wui-custom-trigger">
+          <WalletButton />
         </div>
-      )}
-
-      {!connected && (
-        <button 
-          className="btn btn-primary" 
-          onClick={handleConnect}
-          disabled={isConnecting}
-          style={{ width: '100%', height: '64px', fontSize: '1.2rem', boxShadow: '0 20px 40px rgba(108, 59, 255, 0.25)' }}
-        >
-          {isConnecting ? (
-            <><Loader2 className="animate-spin" size={24} /> Awaiting Auth...</>
-          ) : (
-            <>Connect Web3 Wallet <ChevronRight size={22} /></>
-          )}
-        </button>
       )}
 
       {connected && (
@@ -148,7 +78,7 @@ export function WalletConnect({ onConnected }: WalletConnectProps) {
           <div style={{ padding: '1.25rem 2rem', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '16px', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '1rem', width: '100%' }}>
             <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 10px #10b981' }} />
             <div style={{ fontFamily: 'monospace', fontSize: '1.15rem', fontWeight: 700, color: 'white' }}>
-              {formatAddress(connectedAddress!)}
+              {formatAddress(activeAddress!)}
             </div>
           </div>
         </motion.div>

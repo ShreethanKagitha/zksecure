@@ -1,4 +1,4 @@
-import { getPeraWallet } from './walletService';
+import { walletManager } from './walletService';
 
 export interface BlockchainResult {
   txId: string;
@@ -51,15 +51,15 @@ export const anchorProofOnChain = async (
 
     console.log(`[BlockchainService] Transaction built: ${txn.type}`);
 
-    // 2. Fetch the wallet instance lazily
-    const wallet = await getPeraWallet();
-    const txGroup = [{ txn, signers: [walletAddress] }];
-    console.log(`[BlockchainService] Requesting signature from Pera Wallet...`);
-    const signedTxns = await wallet.signTransaction([txGroup]);
+    // 2. Fetch active connected transactions from WalletManager
+    const encodedTxn = algosdk.encodeUnsignedTransaction(txn);
+    console.log(`[BlockchainService] Requesting signature from active wallet...`);
+    const signedTxns = await walletManager.signTransactions([encodedTxn]);
 
     console.log(`[BlockchainService] Broadcasting transaction...`);
-    const payloadToBroadcast = Array.isArray(signedTxns) ? signedTxns[0] : signedTxns;
-    const response = await algodClient.sendRawTransaction(payloadToBroadcast).do() as any;
+    const validSignedTxns = (Array.isArray(signedTxns) ? signedTxns : [signedTxns]).filter(t => t !== null) as Uint8Array[];
+    // Broadcast the first valid signed transaction payload
+    const response = await algodClient.sendRawTransaction(validSignedTxns[0]).do() as any;
     
     // Safely extract transaction ID (Pera response vs. local computation fallback)
     const txId = response.txId || txn.txID().toString();

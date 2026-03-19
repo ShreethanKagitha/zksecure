@@ -10,10 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@blockshake/defly-connect": "^1.2.1",
     "@perawallet/connect": "^1.5.1",
+    "@txnlab/use-wallet-react": "^4.6.0",
+    "@txnlab/use-wallet-ui-react": "^1.1.0",
     "algosdk": "^3.5.2",
     "framer-motion": "^12.36.0",
     "lucide-react": "^0.577.0",
+    "lute-connect": "^1.7.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.13.1"
