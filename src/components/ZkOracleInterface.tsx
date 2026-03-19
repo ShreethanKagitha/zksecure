@@ -337,13 +337,13 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
                   <span style={{ fontSize: '0.9rem', fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary)' }}>{onChainId || '0x...'}</span>
                   {onChainId && (
                     <a 
-                      href={`https://testnet.algoexplorer.io/tx/${onChainId}`} 
+                      href={`https://testnet.explorer.perawallet.app/tx/${onChainId}`} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="btn btn-secondary"
-                      style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}
+                      className="btn" 
+                      style={{ padding: '0.6rem 1.25rem', fontSize: '0.9rem', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', flex: 1, display: 'flex', justifyContent: 'center', gap: '0.5rem' }}
                     >
-                      <ExternalLink size={14} /> View on AlgoExplorer
+                      <ExternalLink size={14} /> View on Pera Explorer
                     </a>
                   )}
                 </div>

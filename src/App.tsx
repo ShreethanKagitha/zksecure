@@ -107,15 +107,14 @@ function MainLayout({ children, wallet, onDisconnect }: any) {
                       <Copy size={16} /> Copy Wallet Address
                     </button>
                     <button 
+                      className="btn" 
+                      style={{ padding: '0.75rem 1rem', width: '100%', justifyContent: 'flex-start', background: 'transparent', border: 'none', color: 'var(--text-dim)', textAlign: 'left', display: 'flex', gap: '0.75rem' }}
                       onClick={() => {
-                        window.open(`https://testnet.algoexplorer.io/address/${wallet}`, '_blank');
+                        window.open(`https://testnet.explorer.perawallet.app/address/${wallet}`, '_blank');
                         setIsDropdownOpen(false);
                       }}
-                      style={{ width: '100%', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', borderRadius: '8px' }}
-                      onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
                     >
-                      <ExternalLink size={16} /> View on AlgoExplorer
+                      <ExternalLink size={16} /> View on Pera Explorer
                     </button>
                     <div style={{ height: '1px', background: 'var(--glass-border)', margin: '0.25rem 0' }} />
                     <button 

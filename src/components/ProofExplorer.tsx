@@ -44,7 +44,7 @@ export function ProofExplorer({ txId, round, timestamp }: ProofExplorerProps) {
       </div>
 
       <a 
-        href={`https://testnet.algoexplorer.io/tx/${txId}`} 
+        href={`https://testnet.explorer.perawallet.app/tx/${txId}`} 
         target="_blank" 
         rel="noopener noreferrer"
         style={{ 
@@ -53,7 +53,7 @@ export function ProofExplorer({ txId, round, timestamp }: ProofExplorerProps) {
           background: 'rgba(16, 185, 129, 0.1)', borderRadius: '100px', border: '1px solid rgba(16, 185, 129, 0.2)'
         }}
       >
-        View on AlgoExplorer <ExternalLink size={16} />
+        View on Pera Explorer <ExternalLink size={16} />
       </a>
     </div>
   );
