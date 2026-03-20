@@ -11,7 +11,7 @@ const ALGOD_PORT = '';
 const ALGOD_TOKEN = '';
 
 /**
- * Anchors a ZK-Proof to the Algorand blockchain via Pera Wallet.
+ * Anchors a ZK-Proof to the Algorand blockchain via a connected Wallet.
  */
 export const anchorProofOnChain = async (
   walletAddress: string,
@@ -25,7 +25,7 @@ export const anchorProofOnChain = async (
   console.log("Anchoring proof with wallet:", walletAddress);
   
   if (!walletAddress || walletAddress === "null" || walletAddress === "undefined") {
-    throw new Error("Please connect your Pera Wallet before anchoring the proof.");
+    throw new Error("Please connect your Wallet before anchoring the proof.");
   }
 
   console.log(`[BlockchainService] Proof Payload Size: ${JSON.stringify(proof).length} bytes`);
@@ -87,9 +87,9 @@ export const anchorProofOnChain = async (
        throw new Error("Your Testnet wallet has 0 ALGO and cannot pay the 0.001 ALGO transaction fee. Please fund it using the Algorand Testnet Dispenser (https://bank.testnet.algorand.network) and try again.");
     }
 
-    // Handle user rejection explicitly if it comes from Pera Wallet
+    // Handle user rejection explicitly if it comes from the Wallet
     if (errorMsg.includes("reject") || errorMsg.includes("cancel")) {
-       throw new Error("Transaction signature was declined by the user in Pera Wallet.");
+       throw new Error("Transaction signature was declined by the user in the Wallet.");
     }
     throw new Error(error.message || "Failed to anchor proof on chain.");
   }

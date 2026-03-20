@@ -53,7 +53,7 @@ export function ProofExplorer({ txId, round, timestamp }: ProofExplorerProps) {
           background: 'rgba(16, 185, 129, 0.1)', borderRadius: '100px', border: '1px solid rgba(16, 185, 129, 0.2)'
         }}
       >
-        View on Pera Explorer <ExternalLink size={16} />
+        View on Explorer <ExternalLink size={16} />
       </a>
     </div>
   );

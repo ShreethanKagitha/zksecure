@@ -33,11 +33,15 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
   const [step, setStep] = useState('select'); // select, fetching, proving, submitting, done
   const [provider, setProvider] = useState<Provider | null>(null);
   const [progress, setProgress] = useState(0);
-  const [balanceInput, setBalanceInput] = useState('65000');
+  const [balanceInput, setBalanceInput] = useState('');
   const [zkResult, setZkResult] = useState<ZKResponse | null>(null);
   const [onChainId, setOnChainId] = useState<string | null>(null);
 
   const handleSelect = (p: Provider) => {
+    if (!balanceInput || isNaN(Number(balanceInput))) {
+      alert("Please enter the amount first to simulate real session data");
+      return;
+    }
     setProvider(p);
     runPipeline();
   };
@@ -91,7 +95,7 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
       console.log("Anchoring proof with wallet:", activeWalletAddress);
       
       if (!activeWalletAddress || activeWalletAddress === "null" || activeWalletAddress === "undefined") {
-        throw new Error("Please connect your Pera Wallet before anchoring the proof.");
+        throw new Error("Please connect your Wallet before anchoring the proof.");
       }
       
       const submitInterval = setInterval(() => setProgress(prev => Math.min(prev + 2, 95)), 50);
@@ -159,18 +163,19 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
                    type="number" 
                    value={balanceInput}
                    onChange={e => setBalanceInput(e.target.value)}
+                   placeholder="Enter the amount"
                    style={{
                      width: '100%',
                      padding: '1.25rem 1.5rem',
                      borderRadius: '16px',
-                     border: '1px solid var(--glass-border)',
+                     border: balanceInput === '' ? '2px solid var(--primary)' : '1px solid var(--glass-border)',
                      background: 'rgba(5, 5, 5, 0.6)',
                      color: '#fff',
                      fontSize: '1.25rem',
                      fontWeight: 700,
                      fontFamily: 'JetBrains Mono, monospace',
                      outline: 'none',
-                     boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.5)'
+                     boxShadow: balanceInput === '' ? '0 0 20px rgba(108, 59, 255, 0.4), inset 0 2px 10px rgba(0,0,0,0.5)' : 'inset 0 2px 10px rgba(0,0,0,0.5)'
                    }}
                 />
                 <span style={{ position: 'absolute', right: '1.5rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)', fontSize: '1rem', fontWeight: 800 }}>
@@ -184,7 +189,7 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
 
             {!walletAddress && (
               <div style={{ marginBottom: '2rem', padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', color: '#ef4444', textAlign: 'center', fontWeight: 600 }}>
-                Please connect a Pera Wallet to anchor the proof.
+                Please connect your Wallet to anchor the proof.
               </div>
             )}
 
@@ -343,7 +348,7 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
                       className="btn" 
                       style={{ padding: '0.6rem 1.25rem', fontSize: '0.9rem', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', flex: 1, display: 'flex', justifyContent: 'center', gap: '0.5rem' }}
                     >
-                      <ExternalLink size={14} /> View on Pera Explorer
+                      <ExternalLink size={14} /> View on Explorer
                     </a>
                   )}
                 </div>

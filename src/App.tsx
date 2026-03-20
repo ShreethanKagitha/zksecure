@@ -114,7 +114,7 @@ function MainLayout({ children, wallet, onDisconnect }: any) {
                         setIsDropdownOpen(false);
                       }}
                     >
-                      <ExternalLink size={16} /> View on Pera Explorer
+                      <ExternalLink size={16} /> View on Explorer
                     </button>
                     <div style={{ height: '1px', background: 'var(--glass-border)', margin: '0.25rem 0' }} />
                     <button 
