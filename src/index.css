@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
   --bg-color: #000000;
@@ -17,9 +17,9 @@
   --glass-border: rgba(255, 255, 255, 0.06);
   --glass-bg: rgba(11, 15, 42, 0.6);
   --glass-reflection: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%, rgba(255, 255, 255, 0.02) 100%);
-  --font-main: 'Inter', sans-serif;
+  --font-main: 'Outfit', sans-serif;
   --border-color: rgba(255, 255, 255, 0.06);
-  --font-heading: 'Plus Jakarta Sans', sans-serif;
+  --font-heading: 'Outfit', sans-serif;
 }
 
 * {
@@ -170,7 +170,7 @@ body {
 
 /* Typography */
 h1 {
-  font-size: clamp(2.6rem, 8vw, 5.5rem);
+  font-size: 5.5rem;
   font-weight: 800;
   font-family: var(--font-heading);
   letter-spacing: -0.05em;
@@ -187,7 +187,7 @@ h1 {
 }
 
 h2 {
-  font-size: clamp(1.8rem, 5vw, 3.5rem);
+  font-size: 2.75rem;
   font-weight: 700;
   letter-spacing: -0.03em;
   margin-bottom: 1.5rem;
@@ -195,7 +195,7 @@ h2 {
 
 p {
   color: var(--text-dim);
-  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  font-size: 1.125rem;
   font-weight: 400;
   line-height: 1.6;
 }
@@ -674,8 +674,8 @@ p {
 }
 
 @media (max-width: 768px) {
-  h1 { margin-bottom: 1rem !important; }
-  h2 { margin-bottom: 1rem !important; }
+  h1 { font-size: 2.6rem !important; margin-bottom: 1rem !important; }
+  h2 { font-size: 1.8rem !important; margin-bottom: 1rem !important; }
   .container { padding: 0 1.25rem !important; }
   .glass-card { padding: 1.5rem !important; border-radius: 16px !important; }
   
@@ -1580,3 +1580,5 @@ tr.section-reveal {
     transition-duration: 0.01ms !important;
   }
 }
+
+
