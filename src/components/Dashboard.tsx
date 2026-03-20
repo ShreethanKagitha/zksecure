@@ -1,6 +1,6 @@
-import { History, PlusCircle, ShieldCheck, Database, AlertCircle, Award, ExternalLink, Zap } from 'lucide-react';
+import { History, PlusCircle, ShieldCheck, Database, AlertCircle, Award, ExternalLink, Zap, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ProofExplorer } from './ProofExplorer';
 
 interface DashboardProps {
@@ -12,12 +12,30 @@ export function Dashboard({ walletAddress, onStartVerify }: DashboardProps) {
   // State to simulate blockchain response for demo
   const [proofData, setProofData] = useState<{ txId: string, round: number | string, timestamp: string } | null>(null);
 
-  // Mock history data
-  const history = [
-    { id: 1, type: 'HDFC Balance Check', status: 'Verified', date: '2024-03-12', tx: '0x8a...f1' },
-    { id: 2, type: 'Aadhaar Personhood', status: 'Verified', date: '2024-03-10', tx: '0x32...e9' },
-    { id: 3, type: 'X (Twitter) Followers', status: 'Verified', date: '2024-03-08', tx: '0x9c...4a' },
-  ];
+  const [verificationHistory, setVerificationHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+
+  useEffect(() => {
+    if (walletAddress) {
+      setLoadingHistory(true);
+      fetch(`http://localhost:5000/history/${walletAddress}`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setVerificationHistory(data);
+          } else {
+            setVerificationHistory([]);
+          }
+        })
+        .catch(err => {
+          console.error("Failed to fetch history:", err);
+          setVerificationHistory([]);
+        })
+        .finally(() => {
+          setLoadingHistory(false);
+        });
+    }
+  }, [walletAddress]);
 
   const handleAnchorProof = () => {
     // Set a mock proof object to simulate an anchored proof transaction
@@ -139,24 +157,49 @@ export function Dashboard({ walletAddress, onStartVerify }: DashboardProps) {
 
       <div className="glass-card" style={{ padding: '2.5rem' }}>
         <div className="card-title" style={{ marginBottom: '2rem' }}>
-          <History size={24} color="var(--primary)" /> Operation Logs
+          <History size={24} color="var(--primary)" /> Verification History
         </div>
-        <div className="w-full">
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 2fr) 1fr 1.5fr 1fr', padding: '1rem 1.5rem', borderBottom: '1px solid var(--glass-border)', opacity: 0.5, fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.1em' }}>
-            <div>VERIFICATION PROBE</div>
-            <div>STATUS</div>
-            <div>TIMESTAMP</div>
-            <div style={{ textAlign: 'right' }}>LEDGER</div>
-          </div>
-          {history.map(item => (
-            <div key={item.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 2fr) 1fr 1.5fr 1fr', padding: '1.5rem', borderBottom: '1px solid var(--glass-border)', fontSize: '1rem', alignItems: 'center' }} className="hover-item">
-              <div style={{ fontWeight: 700, color: 'white' }}>{item.type}</div>
-              <div><span className="status-pill status-success" style={{ fontSize: '0.7rem' }}>{item.status}</span></div>
-              <div style={{ color: 'var(--text-dim)', fontSize: '0.9rem' }}>{item.date}</div>
-              <div style={{ fontFamily: 'monospace', color: 'var(--primary)', textAlign: 'right', fontSize: '0.9rem', cursor: 'pointer' }}>{item.tx}</div>
+        
+        {loadingHistory ? (
+           <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-dim)' }}>Loading history...</div>
+        ) : verificationHistory.length === 0 ? (
+           <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--text-dim)', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed var(--glass-border)' }}>
+             <Clock size={32} opacity={0.3} style={{ margin: '0 auto 1rem auto' }} />
+             No verification history available
+           </div>
+        ) : (
+          <div className="w-full">
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1.5fr) 2fr 1.5fr', padding: '1rem 1.5rem', borderBottom: '1px solid var(--glass-border)', opacity: 0.5, fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.1em' }}>
+              <div>STATUS</div>
+              <div>CONDITION</div>
+              <div style={{ textAlign: 'right' }}>TIMESTAMP</div>
             </div>
-          ))}
-        </div>
+            {verificationHistory.map((item, idx) => (
+              <div key={idx} style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1.5fr) 2fr 1.5fr', padding: '1.5rem', borderBottom: '1px solid var(--glass-border)', fontSize: '1rem', alignItems: 'center' }} className="hover-item">
+                
+                <div>
+                  <span 
+                    className={`status-pill ${item.status === 'VERIFIED' ? 'status-success' : ''}`} 
+                    style={{ 
+                      fontSize: '0.75rem', 
+                      background: item.status === 'VERIFIED' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                      color: item.status === 'VERIFIED' ? '#10b981' : '#ef4444',
+                      border: `1px solid ${item.status === 'VERIFIED' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`
+                    }}
+                  >
+                    {item.status}
+                  </span>
+                </div>
+                
+                <div style={{ fontWeight: 600, color: 'white' }}>{item.condition}</div>
+                
+                <div style={{ color: 'var(--text-dim)', textAlign: 'right', fontSize: '0.9rem', fontFamily: 'monospace' }}>
+                   {new Date(item.timestamp).toLocaleString()}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div style={{ marginTop: '3rem', display: 'flex', justifyContent: 'center' }}>

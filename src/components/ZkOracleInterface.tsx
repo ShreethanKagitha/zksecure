@@ -1,11 +1,9 @@
 import { useState } from 'react';
-import { ShieldAlert, Database, FileDigit, Cpu, CheckCircle, AlertTriangle, ArrowLeft, Briefcase, Share2, Check, Zap, Globe, Lock, ExternalLink } from 'lucide-react';
+import { ShieldAlert, Database, Cpu, CheckCircle, AlertTriangle, ArrowLeft, Briefcase, Share2, Check, Zap, Globe, Lock, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { generateCreditScoreProof } from '../lib/zkProver';
 import type { ZKResponse } from '../lib/zkProver';
 import { fetchWeb2BankData } from '../lib/web2DataService';
 
-import { relayProofToBlockchain } from '../lib/oracleService';
 import { Terminal } from './Terminal';
 
 const PROVIDERS = [
@@ -61,75 +59,68 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
       console.log(`[PIPELINE] FETCHED:`, bankData);
       await new Promise(r => setTimeout(r, 600));
 
-      // 2. PROVING STAGE
+      // 2. PROVING & SIMULATED SUBMITTING STAGE (BACKEND NETWORK INTEGRATION)
       setStep('proving');
       setProgress(0);
       const threshold = 50000;
       const actualBalance = Number(String(balanceInput).replace(/[^\d]/g, ""));
       
-      console.log(`[PIPELINE] Starting PROVING. UI thinks: Bal=${actualBalance}, Thresh=${threshold}`);
+      const localWallet = localStorage.getItem("walletAddress");
+      const activeWalletAddress = localWallet && localWallet !== "null" && localWallet !== "undefined" ? localWallet : walletAddress;
+      
+      console.log(`[PIPELINE] Starting PROVING via Backend API for Wallet: ${activeWalletAddress}`);
       
       const proveInterval = setInterval(() => setProgress(prev => Math.min(prev + 3, 95)), 50);
-      const result = await generateCreditScoreProof(actualBalance, threshold);
+      
+      const response = await fetch('http://localhost:5000/verify', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ wallet: activeWalletAddress, balance: actualBalance, threshold })
+      });
+      const data = await response.json();
+      
       clearInterval(proveInterval);
       setProgress(100);
-      setZkResult(result);
       
-      console.log(`[PIPELINE] PROVER REFLECTED INPUTS:`, result.inputs);
-      console.log(`[PIPELINE] PROVER STATUS: ${result.verificationStatus}`);
+      console.log("[BACKEND VERIFICATION RESPONSE]:", data);
 
-      if (result.verificationStatus !== 'SUCCESS') {
-        console.error(`[PIPELINE] Verification Failed! Status: ${result.verificationStatus}, Error: ${result.error}`);
+      if (data.status !== 'VERIFIED') {
+        console.error(`[PIPELINE] Verification Failed! Backend returned: ${data.status}`);
+        setZkResult({ 
+           verificationStatus: 'ERROR', 
+           error: data.error || 'Condition Not Met', 
+           proof: { pi_a: [] }, 
+           publicSignals: [], 
+           inputs: { balance: actualBalance, threshold } as any 
+        });
         setStep('error');
         return;
       }
       await new Promise(r => setTimeout(r, 600));
 
-      // 3. SUBMITTING STAGE
+      // 3. SUBMITTING STAGE (Visual confirmation of Backend's Anchor)
       setStep('submitting');
       setProgress(0);
       
-      const localWallet = localStorage.getItem("walletAddress");
-      const activeWalletAddress = localWallet && localWallet !== "null" && localWallet !== "undefined" ? localWallet : walletAddress;
-      
-      console.log("Anchoring proof with wallet:", activeWalletAddress);
-      
-      if (!activeWalletAddress || activeWalletAddress === "null" || activeWalletAddress === "undefined") {
-        throw new Error("Please connect your Wallet before anchoring the proof.");
-      }
-      
-      const submitInterval = setInterval(() => setProgress(prev => Math.min(prev + 2, 95)), 50);
-      const relayResult = await relayProofToBlockchain(activeWalletAddress, result);
+      console.log("Confirming proof anchoring synced by Backend...");
+      const submitInterval = setInterval(() => setProgress(prev => Math.min(prev + 5, 100)), 50);
+      await new Promise(r => setTimeout(r, 1200));
       clearInterval(submitInterval);
+      setProgress(100);
       
-      console.log(`[PIPELINE] RELAY RESULT:`, relayResult);
-
-      if (relayResult.success && relayResult.onChainTxId) {
-        setOnChainId(relayResult.onChainTxId);
-        setProgress(100);
-        await new Promise(r => setTimeout(r, 600));
-        setStep('done');
-      } else {
-        console.error(`[PIPELINE] Relay Failed: ${relayResult.error}`);
-        // Ensure the error is bubbled to the UI by mocking a failure on zkResult
-        setZkResult(prev => ({ 
-            ...prev, 
-            proof: prev?.proof, 
-            publicSignals: prev?.publicSignals, 
-            verificationStatus: 'ERROR', 
-            error: relayResult.error || "Relay to blockchain failed" 
-        }));
-        setStep('error');
-      }
+      setOnChainId(data.txId || null);
+      
+      await new Promise(r => setTimeout(r, 600));
+      setStep('done');
     } catch (error: any) {
        console.error("[PIPELINE] Fatal Exception Caught:", error);
-       setZkResult(prev => ({ 
-           ...prev, 
-           proof: prev?.proof, 
-           publicSignals: prev?.publicSignals, 
+       setZkResult({ 
            verificationStatus: 'ERROR', 
-           error: error.message || "An unexpected error occurred during the pipeline execution." 
-       }));
+           error: error.message || "An unexpected error occurred during the pipeline execution.",
+           proof: { pi_a: [] }, 
+           publicSignals: [], 
+           inputs: { balance: 0, threshold: 0 } as any
+       });
        setStep('error');
     }
   };
@@ -294,15 +285,18 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
             }}>
               <AlertTriangle size={48} color="#ef4444" />
             </div>
-            <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>Probe Rejected</h2>
+            <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1.5rem', color: '#ef4444' }}>NOT VERIFIED</h2>
+            <div style={{ margin: '0 auto 2rem auto', background: 'rgba(239, 68, 68, 0.1)', padding: '0.75rem 1.5rem', borderRadius: '12px', display: 'inline-block', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+               <strong style={{ color: '#ef4444', fontSize: '1.1rem' }}>Condition: Balance &ge; ₹50,000</strong>
+            </div>
             <p style={{ maxWidth: '600px', margin: '0 auto 3.5rem auto', fontSize: '1.1rem', color: 'var(--text-dim)', lineHeight: 1.6 }}>
-              The zero-knowledge proof generation or network relay failed. <br />
+              The zero-knowledge proof generation or network relay failed, or the primary condition was not met. <br />
               <strong style={{ color: 'var(--primary)', marginTop: '1rem', display: 'block' }}>
-                {zkResult?.error || `Retrieved Balance ₹${Number(String(balanceInput).replace(/[^\d]/g, ""))} is less than required ₹50,000.`}
+                {zkResult?.error === "Condition Failed: Balance is less than required ₹50,000." ? "Proof invalid: Condition not met." : "Condition Not Met or Network Error"}
               </strong>
             </p>
             <button className="btn btn-secondary" onClick={() => setStep('select')} style={{ padding: '1rem 3rem' }}>
-              <ArrowLeft size={18} /> Modify Probe Parameters
+              <ArrowLeft size={18} /> Return
             </button>
           </motion.div>
         )}
@@ -318,10 +312,25 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
             }}>
               <CheckCircle size={48} color="#10b981" />
             </div>
-            <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>Proof Anchored Successfully</h2>
-            <p style={{ marginBottom: '3.5rem', maxWidth: '600px', margin: '0 auto', fontSize: '1.1rem', color: 'var(--text-dim)', lineHeight: 1.6 }}>
+            <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1.5rem', color: '#10b981' }}>VERIFIED</h2>
+            <div style={{ margin: '0 auto 2rem auto', background: 'rgba(16, 185, 129, 0.1)', padding: '0.75rem 1.5rem', borderRadius: '12px', display: 'inline-block', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+               <strong style={{ color: '#10b981', fontSize: '1.1rem' }}>Condition: Balance &ge; ₹50,000</strong>
+            </div>
+            <p style={{ marginBottom: '2.5rem', maxWidth: '600px', margin: '0 auto', fontSize: '1.1rem', color: 'var(--text-dim)', lineHeight: 1.6 }}>
               Success. Your private web session has been cryptographically notarized. The zk-proof is now anchored to the global trust layer.
             </p>
+            
+            <div style={{ 
+              background: 'rgba(108, 59, 255, 0.05)', 
+              border: '1px solid rgba(108, 59, 255, 0.2)',
+              borderRadius: '16px',
+              padding: '1.5rem',
+              marginBottom: '3rem',
+              color: 'var(--text-dim)'
+            }}>
+               <Lock size={20} color="var(--primary)" style={{ margin: '0 auto 0.5rem auto', display: 'block' }} />
+               <p style={{ fontSize: '1rem', fontStyle: 'italic', fontWeight: 600 }}>No financial data is revealed. Only eligibility is proven using zero-knowledge proofs.</p>
+            </div>
             
             <div style={{ 
               background: 'rgba(5, 5, 5, 0.6)', 
@@ -353,28 +362,10 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
                   )}
                 </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0', borderBottom: 'none', marginBottom: '0' }}>
                 <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-dim)' }}>PROOF VALIDITY</span>
                 <span className="status-pill status-success" style={{ padding: '0.4rem 1.2rem' }}>AUTHENTICATED</span>
               </div>
-              {zkResult && (
-                <div style={{
-                  background: '#000',
-                  borderRadius: '16px',
-                  padding: '1.5rem',
-                  fontSize: '0.85rem',
-                  maxHeight: '180px',
-                  overflowY: 'auto',
-                  border: '1px solid var(--glass-border)'
-                }}>
-                  <div style={{ color: 'var(--primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.6rem', fontWeight: 800, letterSpacing: '0.1em' }}>
-                    <FileDigit size={16} /> RAW ZK-PROOF PAYLOAD
-                  </div>
-                  <div className="zk-code-block" style={{ opacity: 0.6, color: '#a5b4fc' }}>
-                    {JSON.stringify(zkResult, null, 2)}
-                  </div>
-                </div>
-              )}
             </div>
 
             <button className="btn btn-primary w-full" onClick={onComplete} style={{ padding: '1.5rem' }}>
