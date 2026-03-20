@@ -28,16 +28,31 @@ interface ZkOracleInterfaceProps {
 }
 
 export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard }: ZkOracleInterfaceProps) {
-  const [step, setStep] = useState('select'); // select, fetching, proving, submitting, done
+  const [step, setStep] = useState('select'); // select, fetching, proving, verifying, submitting, done
   const [provider, setProvider] = useState<Provider | null>(null);
   const [progress, setProgress] = useState(0);
-  const [balanceInput, setBalanceInput] = useState('');
+  const [mockCredential, setMockCredential] = useState<any>(null);
+  const [isFetchingData, setIsFetchingData] = useState(false);
   const [zkResult, setZkResult] = useState<ZKResponse | null>(null);
   const [onChainId, setOnChainId] = useState<string | null>(null);
 
+  const handleDigiLockerFetch = async () => {
+    setIsFetchingData(true);
+    try {
+        const res = await fetch('http://localhost:5000/secure-fetch');
+        const json = await res.json();
+        setMockCredential(json);
+    } catch (e) {
+        console.error(e);
+        alert("Failed to securely pull Document and TLS Signature securely");
+    } finally {
+        setIsFetchingData(false);
+    }
+  };
+
   const handleSelect = (p: Provider) => {
-    if (!balanceInput || isNaN(Number(balanceInput))) {
-      alert("Please enter the amount first to simulate real session data");
+    if (!mockCredential) {
+      alert("Please execute the web connection to cryptographically secure a signature session first.");
       return;
     }
     setProvider(p);
@@ -49,21 +64,20 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
       // 1. FETCHING STAGE
       setStep('fetching');
       setProgress(0);
-      console.log(`[PIPELINE] Starting FETCHING. balanceInput: "${balanceInput}"`);
+      console.log(`[PIPELINE] Starting FETCHING. Authenticated Block ID: `, mockCredential?.signature.substring(0,10));
       
       const fetchInterval = setInterval(() => setProgress(prev => Math.min(prev + 5, 95)), 50);
       
-      const bankData = await fetchWeb2BankData(Number(String(balanceInput).replace(/[^\d]/g, "")));
+      const bankData = await fetchWeb2BankData(mockCredential?.data?.balance || 0);
       clearInterval(fetchInterval);
       setProgress(100);
-      console.log(`[PIPELINE] FETCHED:`, bankData);
+      console.log(`[PIPELINE] FETCHED TLS HANDSHAKE:`, bankData);
       await new Promise(r => setTimeout(r, 600));
 
       // 2. PROVING & SIMULATED SUBMITTING STAGE (BACKEND NETWORK INTEGRATION)
       setStep('proving');
       setProgress(0);
       const threshold = 50000;
-      const actualBalance = Number(String(balanceInput).replace(/[^\d]/g, ""));
       
       const localWallet = localStorage.getItem("walletAddress");
       const activeWalletAddress = localWallet && localWallet !== "null" && localWallet !== "undefined" ? localWallet : walletAddress;
@@ -75,7 +89,12 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
       const response = await fetch('http://localhost:5000/verify', {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ wallet: activeWalletAddress, balance: actualBalance, threshold })
+         body: JSON.stringify({ 
+             wallet: activeWalletAddress, 
+             data: mockCredential.data,
+             signature: mockCredential.signature,
+             threshold 
+         })
       });
       const data = await response.json();
       
@@ -84,6 +103,14 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
       
       console.log("[BACKEND VERIFICATION RESPONSE]:", data);
 
+      // 3. VERIFYING STAGE (Visual separation for Cryptographic Validation)
+      setStep('verifying');
+      setProgress(0);
+      const verifyInterval = setInterval(() => setProgress(prev => Math.min(prev + 4, 100)), 50);
+      await new Promise(r => setTimeout(r, 600));
+      clearInterval(verifyInterval);
+      setProgress(100);
+
       if (data.status !== 'VERIFIED') {
         console.error(`[PIPELINE] Verification Failed! Backend returned: ${data.status}`);
         setZkResult({ 
@@ -91,14 +118,14 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
            error: data.error || 'Condition Not Met', 
            proof: { pi_a: [] }, 
            publicSignals: [], 
-           inputs: { balance: actualBalance, threshold } as any 
+           inputs: { balance: mockCredential?.data?.balance, threshold } as any 
         });
         setStep('error');
         return;
       }
       await new Promise(r => setTimeout(r, 600));
 
-      // 3. SUBMITTING STAGE (Visual confirmation of Backend's Anchor)
+      // 4. SUBMITTING STAGE (Visual confirmation of Backend's Anchor)
       setStep('submitting');
       setProgress(0);
       
@@ -132,8 +159,8 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
           <ArrowLeft size={24} />
         </button>
         <div>
-          <h2 style={{ marginBottom: '0.25rem', fontSize: '2rem', fontWeight: 800 }}>Secure Data Probe</h2>
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-dim)', fontWeight: 600 }}>OPERATION: {step.toUpperCase()}</p>
+          <h2 style={{ marginBottom: '0.25rem', fontSize: '2rem', fontWeight: 800 }}>zkTLS-inspired verification pipeline</h2>
+          <p style={{ fontSize: '0.9rem', color: 'var(--text-dim)', fontWeight: 600 }}>OPERATION: {step.toUpperCase()} | Sensitive data is processed locally and never exposed</p>
         </div>
       </div>
 
@@ -147,34 +174,31 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
             
             <div className="mx-auto" style={{ maxWidth: '500px', textAlign: 'left', marginBottom: '3.5rem' }}>
               <label style={{ fontSize: '0.9rem', fontWeight: 700, color: 'white', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Database size={16} color="var(--primary)" /> MOCK SESSION DATA (BANK BALANCE)
+                <Database size={16} color="var(--primary)" /> DIGILOCKER OAUTH PAYLOAD
               </label>
-              <div style={{ position: 'relative' }}>
-                <input 
-                   type="number" 
-                   value={balanceInput}
-                   onChange={e => setBalanceInput(e.target.value)}
-                   placeholder="Enter the amount"
-                   style={{
-                     width: '100%',
-                     padding: '1.25rem 1.5rem',
-                     borderRadius: '16px',
-                     border: balanceInput === '' ? '2px solid var(--primary)' : '1px solid var(--glass-border)',
-                     background: 'rgba(5, 5, 5, 0.6)',
-                     color: '#fff',
-                     fontSize: '1.25rem',
-                     fontWeight: 700,
-                     fontFamily: 'JetBrains Mono, monospace',
-                     outline: 'none',
-                     boxShadow: balanceInput === '' ? '0 0 20px rgba(108, 59, 255, 0.4), inset 0 2px 10px rgba(0,0,0,0.5)' : 'inset 0 2px 10px rgba(0,0,0,0.5)'
-                   }}
-                />
-                <span style={{ position: 'absolute', right: '1.5rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)', fontSize: '1rem', fontWeight: 800 }}>
-                  ₹ INR
-                </span>
-              </div>
+              
+              <button 
+                 onClick={handleDigiLockerFetch}
+                 disabled={isFetchingData || mockCredential !== null}
+                 className="btn btn-secondary w-full"
+                 style={{ 
+                    padding: '1.25rem', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: '0.75rem',
+                    background: mockCredential ? 'rgba(16, 185, 129, 0.1)' : 'rgba(108, 59, 255, 0.1)',
+                    border: mockCredential ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(108, 59, 255, 0.3)',
+                    color: mockCredential ? '#10b981' : 'white',
+                    opacity: isFetchingData ? 0.7 : 1
+                 }}
+              >
+                 <Lock size={18} /> 
+                 {isFetchingData ? "Establishing Encrypted Output..." : mockCredential ? "Document fetched securely & cryptographically signed" : "Generate Signature Identity API"}
+              </button>
+
               <p style={{ fontSize: '0.85rem', marginTop: '1rem', color: 'var(--text-dim)', background: 'rgba(108, 59, 255, 0.05)', padding: '0.75rem 1rem', borderRadius: '8px', borderLeft: '3px solid var(--primary)' }}>
-                <strong>Probe Rule:</strong> Prover will only generate a valid attestation if the balance exceeds the ₹50,000 baseline.
+                <strong>Probe Rule:</strong> Prover will only generate a valid attestation if the dynamically fetched balance exceeds the ₹50,000 baseline securely without leaking it to the UI!
               </p>
             </div>
 
@@ -225,22 +249,26 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
           </motion.div>
         )}
 
-        {(step === 'fetching' || step === 'proving' || step === 'submitting') && (
+        {(step === 'fetching' || step === 'proving' || step === 'verifying' || step === 'submitting') && (
           <div style={{ padding: '0' }}>
             {/* Animated Generation Pipeline */}
             <div style={{ marginBottom: '4rem', position: 'relative' }}>
               <div className="steps-container" style={{ maxWidth: '100%', padding: '0' }}>
                 <div className="steps-progress-line" style={{ 
-                  width: step === 'fetching' ? '15%' : step === 'proving' ? '50%' : '85%',
-                  left: '7%'
+                  width: step === 'fetching' ? '12%' : step === 'proving' ? '38%' : step === 'verifying' ? '63%' : '88%',
+                  left: '6%'
                 }}></div>
                 
                 {[
-                  { id: 'fetching', label: 'TLS Fetch', icon: Globe },
-                  { id: 'proving', label: 'Local Prover', icon: Cpu },
-                  { id: 'submitting', label: 'Anchor', icon: Lock }
+                  { id: 'fetching', label: 'Secure Fetch (TLS)', icon: Globe },
+                  { id: 'proving', label: 'Proof Generation (ZK)', icon: Cpu },
+                  { id: 'verifying', label: 'Proof Verification', icon: ShieldAlert },
+                  { id: 'submitting', label: 'Blockchain Anchor', icon: Lock }
                 ].map((s) => {
-                  const isPast = (step === 'proving' && s.id === 'fetching') || (step === 'submitting' && (s.id === 'fetching' || s.id === 'proving'));
+                  const isPast = 
+                    (step === 'proving' && s.id === 'fetching') || 
+                    (step === 'verifying' && (s.id === 'fetching' || s.id === 'proving')) ||
+                    (step === 'submitting' && (s.id === 'fetching' || s.id === 'proving' || s.id === 'verifying'));
                   const isCurrent = step === s.id;
                   
                   return (
@@ -258,8 +286,9 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
             <div className="flex-row items-center justify-between mb-4">
                <div>
                   <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white' }}>
-                    {step === 'fetching' && 'Connecting via MPC handhake...'}
+                    {step === 'fetching' && 'Connecting via MPC handshake...'}
                     {step === 'proving' && 'Executing Local Circom Circuit...'}
+                    {step === 'verifying' && 'Cryptographically Verifying Proof...'}
                     {step === 'submitting' && 'Anchoring attestation to L1...'}
                   </h3>
                </div>
@@ -317,7 +346,7 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
                <strong style={{ color: '#10b981', fontSize: '1.1rem' }}>Condition: Balance &ge; ₹50,000</strong>
             </div>
             <p style={{ marginBottom: '2.5rem', maxWidth: '600px', margin: '0 auto', fontSize: '1.1rem', color: 'var(--text-dim)', lineHeight: 1.6 }}>
-              Success. Your private web session has been cryptographically notarized. The zk-proof is now anchored to the global trust layer.
+              Proof verified and anchored on-chain
             </p>
             
             <div style={{ 

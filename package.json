@@ -15,6 +15,7 @@
     "@txnlab/use-wallet-react": "^4.6.0",
     "@txnlab/use-wallet-ui-react": "^1.1.0",
     "algosdk": "^3.5.2",
+    "circomlib": "^2.0.5",
     "framer-motion": "^12.36.0",
     "lucide-react": "^0.577.0",
     "lute-connect": "^1.7.0",
