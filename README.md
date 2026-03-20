@@ -1,115 +1,149 @@
-<div align="center">
-  <img src="https://img.shields.io/badge/Blockchain-Algorand-black?style=for-the-badge&logo=algorand" alt="Algorand" />
-  <img src="https://img.shields.io/badge/Tech_Stack-React_%7C_Vite-black?style=for-the-badge&logo=react" alt="React Vite" />
-  <img src="https://img.shields.io/badge/Cryptography-zkTLS-black?style=for-the-badge&logo=web3.js" alt="zkTLS" />
-  
-  <br />
-  
-  <h1>🛡️ ZK SECURE 🛡️</h1>
-  <p><h3>The Global Standard for Private Web2 Data Notarization on Web3</h3></p>
-  
-  <p>
-    ZK Secure is a next-generation decentralized application bridging highly sensitive off-chain data (Web2)
-    directly into blockchain smart contracts via fully verifiable Zero-Knowledge proofs (zkTLS).
-  </p>
-</div>
+# ZKSecure: Private Data Oracle using zkTLS
+
+> **Empowering users to provably bridge off-chain Web2 data onto the blockchain using zero-knowledge cryptography without ever revealing the underlying sensitive information.**
 
 ---
 
-## ⚡ Overview
+## 📖 Overview
 
-In the modern Web3 ecosystem, bringing real-world identity and financial data on-chain requires massive trust assumptions. Users traditionally have to hand over their unredacted banking credentials or PII (Personally Identifiable Information) to centralized Oracle APIs. 
+**ZKSecure** is a full-stack Web3 application designed to cryptographically verify data from traditional web sources (like bank statements or identity portals) using a zkTLS-inspired architecture. 
 
-**ZK Secure changes this paradigm.**
-
-By utilizing **zkTLS**, users establish a secure connection with a Web2 host (like their bank or digital ID portal) inside a multiparty computation sandbox. An ephemeral zero-knowledge circuit locally evaluates a claim (e.g., *"Does this user have more than $50k in liquidity?"*) and generates a cryptographic proof. The original data is never exposed—only the cryptographic truth is anchored to the Algorand blockchain.
+It accomplishes this by securely fetching Web2 data, generating a Zero-Knowledge Proof (ZKP) to attest to specific conditions (e.g., user's balance > threshold), and securely anchoring the verification result on-chain via the Algorand blockchain. The entire system is built strictly privacy-first: sensitive underlying data never leaves the user's local instance.
 
 ---
 
-## 🚀 Key Features
+## 🚨 Problem Statement
 
-* **Zero-Knowledge Oracles:** Extract JSON/HTML from Web2 TLS channels and prove assertions locally without leaking the underlying raw text.
-* **Algorand L1 Anchoring:** Instantaneous, low-cost verifiable transactions pushed securely using Pera Wallet.
-* **Decentralized Verification Modes:**
-  * 🏦 **Financial Assets:** Confirm bank liquidity minimums for DeFi whitelist tiering.
-  * 🆔 **Digital Identity:** Prove 18+ adulthood via Aadhaar zero-knowledge parsing.
-  * 💼 **Professional Tier:** Assert job titles (e.g., "Senior Developer") on LinkedIn.
-  * 🌐 **Social Influence:** Verify minimum baseline Twitter/X network follower counts.
-* **Cinematic UI/UX:** An immersive, dark-mode cyber-aesthetic built with Framer Motion, customized glassmorphism, and responsive CSS grids.
+The modern digital economy relies heavily on verified credentials, yet users are currently forced to surrender massive amounts of Raw Personally Identifiable Information (PII) to decentralized and traditional apps alike in order to prove simple conditions like credit-worthiness.
+
+### The Indian Market Context
+* **Credit Scoring:** Users must share full transaction histories and bank statements to prove they meet a minimum asset requirement—risking financial exposure.
+* **Identity Verification (Aadhaar):** Proving personhood or KYC status typically requires fully exposing central demographic identification metrics without granular consent layers.
 
 ---
 
-## 🏛️ System Architecture Workflow
+## 💡 The Solution
 
-1. **Discovery:** The user connects their primary Algorand Web3 Wallet (`@perawallet/connect`).
-2. **TLS Fetch:** The pipeline initializes a secure multiparty proxy handshake to communicate with generic Web2 endpoints.
-3. **Local Prover:** The retrieved payload undergoes client-side Zero-Knowledge evaluation (`snarkjs` / `circom`), filtering out noise and maintaining only the logical cryptographic constraint.
-4. **Blockchain Anchor:** A signed payload confirming the truth threshold is dispatched directly to the Algorand blockchain as an immutable verification block.
+ZKSecure introduces a **zkTLS-inspired pipeline** that breaks this dilemma by guaranteeing cryptographic authenticity without data exposure.
 
----
+**The Pipeline Flow:**
+`Secure Fetch (TLS)` ➔ `Signature Verification` ➔ `ZK Proof Generation` ➔ `Blockchain Anchor`
 
-## 🛠️ Tech Stack
-
-| Domain | Technology |
-| --- | --- |
-| **Frontend Framework** | React 19, TypeScript, Vite |
-| **Blockchain/Web3** | Algorand SDK (`algosdk`), Pera Wallet Connect API |
-| **Animation Engine** | Framer Motion |
-| **Styling** | Vanilla CSS, Tailwind CSS Utility Concepts, Glassmorphic overlays |
-| **Cryptography (Simulated)** | Circom, SnarkJS |
+By intercepting signed TLS transcripts from trusted issuers, we compile a zero-knowledge proof stating a specific condition is true, leaving the actual sensitive dataset completely hidden natively.
 
 ---
 
-## 💻 Getting Started
+## 🏗️ Architecture Stack
 
-### Prerequisites
-* Node.js v19+
-* NPM or Yarn
-* [Pera Wallet Mobile App](https://perawallet.app/) for transaction signing 
+### Frontend
+- **Framework:** React + Vite (TypeScript)
+- **Wallet Connection:** Universal Algorand Wallet Integration (via Pera Wallet / `@txnlab/use-wallet-react`)
+- **Interface:** Dynamic, cyber-punk themed zkTLS verification UI pipeline with realtime progression tracking.
 
-### Local Installation
+### Backend
+- **Framework:** Node.js + Express
+- **Authenticity Layer:** TLS-like signature verification utilizing Node's native `crypto` libraries.
+- **Proof Integrations:** Secure orchestration with `snarkjs` to unpack verification payloads.
+- **Storage:** MongoDB (for non-sensitive metadata logging).
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/ShreethanKagitha/zksecure.git
-   cd zksecure
-   ```
+### Zero-Knowledge (ZK) Layer
+- **Circuits:** Custom `circom` circuit ensuring mathematical thresholds (e.g., `balance ≥ minimum threshold`).
+- **Proof System:** `groth16` proving system for rapid, succinct authentication vectors.
 
-2. **Install exact dependencies**
-   ```bash
-   npm install --legacy-peer-deps
-   ```
-
-3. **Spin up the development server**
-   ```bash
-   npm run dev
-   ```
-
-4. **Web3 Setup:**
-   Ensure your Pera Wallet mobile app is configured to **TestNet** (Settings > Developer Settings > Node Settings) before scanning the WalletConnect QR code.
+### Blockchain
+- **Network:** Algorand (Testnet) via Native Algorand SDK
+- **Consensus:** Smart contract transaction anchoring ensuring permanent cryptographic immutability.
 
 ---
 
-## ☁️ Production Deployment
+## 🛡️ Privacy Design Restrictions
 
-This frontend is optimized for seamless zero-configuration deployments on Vercel Edge networks.
-
-1. Install the Vercel CLI locally (if not attached to Git workflows):
-   ```bash
-   npm i -g vercel
-   ```
-2. Build and push to production:
-   ```bash
-   npx vercel --prod
-   ```
+- **No Sensitive Data Stored:** PII and physical balance variables exist exclusively locally in volatile memory.
+- **Data Not Displayed:** Raw data strings are actively obfuscated and shielded across the frontend UI.
+- **Boolean Integrity:** The blockchain and backend layer only log cryptographically verifiable boolean statuses (e.g., `VERIFIED: TRUE`), not the values that created them.
 
 ---
 
-## 🔒 Security Assumptions & Roadmap
+## ⚙️ Core Workflow
 
-*Currently, this interface functions as a high-fidelity MVP dashboard to simulate the user experience of deploying zkTLS assertions natively. In production environments, the fetch-client relies on immutable cloud executions (such as AWS Nitro Enclaves or TEEs) combined with Multi-Party Computation nodes to completely prevent client-side data tampering before the Circom evaluation.*
+1. **Connect Wallet:** User securely links their Pera Wallet to the dApp.
+2. **Fetch Data:** Secure server instance requests encrypted Web2 data (e.g., mock DigiLocker/Bank credentials).
+3. **Verify Signature:** Cryptographic RSA signatures evaluate the integrity of the data fetch.
+4. **Generate ZK Proof:** Local zero-knowledge circuit proves the data fulfills exact conditions securely.
+5. **Verify Proof:** Proof strings are validated strictly against Groth16 Verification Keys.
+6. **Anchor on Blockchain:** The resulting Proof Hash is dispatched securely via Application call to an Algorand Smart Contract recording the state.
+7. **Store Result:** General boolean verification history is securely synced to the user dashboard.
 
-<div align="center">
-  <br/>
-  <b>Built for the Future of Decentralized Privacy</b>
-</div>
+---
+
+## ✨ Features
+
+- **Zero-Knowledge Proofs:** Provable math logic replacing absolute data handovers.
+- **TLS-Like Verification Layer:** Transcript-style signed payload authenticity checks.
+- **Blockchain Anchoring:** Immutable, decentralized logging of user claims.
+- **Dashboard History:** Clean, unified wallet-synced history panel.
+- **Privacy-First By Default:** Absolute prevention of raw data transmission schemas.
+
+---
+
+## 🚀 Installation & Setup
+
+Ensure you have Node.js (v18+) and npm installed.
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/your-username/zksecure.git
+cd zksecure
+```
+
+### 2. Backend Setup
+```bash
+cd backend
+npm install
+# Configure .env with your MongoDB credentials and Algorand parameters
+node server.js
+```
+
+### 3. Frontend Setup
+```bash
+# In a new terminal window
+cd src
+npm install
+npm run dev
+```
+
+---
+
+## 🔌 API Endpoints
+
+- `POST /verify`: Core API ingestion endpoint that receives raw TLS-like payloads, validates signatures, generates the Groth16 circuit proofs, and dispatches Algorand transactions.
+- `GET /history/:wallet`: Returns metadata logging for all boolean verifications anchored by a specific Algorand Wallet Address.
+
+---
+
+## ⚠️ Current Limitations
+
+- **Mock Data Layer:** The application currently relies on a mocked TLS integration (simulated DigiLocker flow) while open Oracle capabilities are pending.
+- **Simulated TLS Transcript:** Real web-session TLS Notary interception is functionally abstracted for demonstration logic using standard generated RSA signatures.
+- **Backend-Based Verification:** While proofs restrict data leakage natively, proof generation currently relies on backend coordination rather than pure client-side orchestration.
+
+---
+
+## 🔮 Future Improvements
+
+- **Full DigiLocker Integration:** Native connection directly bridging authenticated credential issuing platforms.
+- **Live TLS Transcript Integration:** Applying authentic cryptographic mapping to external TLS requests directly via proxy circuits (e.g. TLSNotary).
+- **On-chain Verification:** Moving proof verification natively into Algorand Smart Contract logic logic rather than utilizing off-chain backend checking.
+- **Multi-Provider Support:** Genericizing the Oracle to dynamically absorb any web-based OAuth token endpoint dynamically.
+
+---
+
+## 🎯 Primary Use Cases
+
+1. **Decentralized Credit Scoring:** DeFi lending protocols analyzing traditional banking throughput securely without storing a user's transaction history.
+2. **Identity Verification (KYC):** Anonymous proof of personhood tracking against governmental APIs (Aadhaar).
+3. **Compliance Tooling:** Trustless corporate auditing against centralized web records (LinkedIn, Tax filings) without releasing core dataset contents.
+
+---
+
+> *"Privacy is not about having something to hide; it is the power to selectively reveal to the world who you are."*
