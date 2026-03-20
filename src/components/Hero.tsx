@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shield, Lock, ArrowRight, Zap, Globe, Search, AlertCircle, CheckCircle, Database, Server, Users, Fingerprint, EyeOff, Network, Loader2, ShieldCheck } from 'lucide-react';
+import { Shield, Lock, ArrowRight, Zap, Globe, AlertCircle, CheckCircle, Database, Server, Users, Fingerprint, EyeOff, Network, Loader2, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 // ── Section Reveal Hook ───────────────────────────────────────────
@@ -78,7 +78,7 @@ function ZkTLSSimulation() {
   }, [simStep]);
 
   return (
-    <div ref={containerRef} className="glass-card demo-engine-container" style={{ maxWidth: '850px', margin: '0 auto', padding: '0', overflow: 'hidden', border: '1px solid rgba(108, 59, 255, 0.15)' }}>
+    <div ref={containerRef} className="glass-card demo-engine-container" style={{ maxWidth: '1050px', margin: '0 auto', padding: '0', overflow: 'hidden', border: '1px solid rgba(108, 59, 255, 0.15)' }}>
       <div style={{ background: 'rgba(5, 8, 22, 0.95)', padding: '1.25rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--glass-border)' }}>
          <div style={{ display: 'flex', gap: '0.6rem' }}>
            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ff5f56', boxShadow: '0 0 10px rgba(255, 95, 86, 0.5)' }}></div>
@@ -265,10 +265,7 @@ export function Hero({ onStart }: HeroProps) {
       {/* 1. Cinematic Hero Section */}
       <section className="text-center" style={{ padding: '6rem 0 5rem 0', position: 'relative', overflow: 'hidden', background: 'transparent' }}>
         <div className="container">
-          <motion.div
-            animate={{ y: [0, -12, 0] }}
-            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          >
+          <div>
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -300,6 +297,7 @@ export function Hero({ onStart }: HeroProps) {
             </motion.p>
             
             <motion.div 
+              className="hero-buttons"
               style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '2rem' }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -308,11 +306,8 @@ export function Hero({ onStart }: HeroProps) {
               <button className="btn btn-primary btn-cta-pulse" onClick={onStart} style={{ padding: '1.25rem 3.5rem', fontSize: '1.2rem', boxShadow: '0 20px 40px rgba(108, 59, 255, 0.25), 0 0 20px rgba(59, 130, 246, 0.15)', position: 'relative', zIndex: 1 }}>
                 Start zkTLS Verification <ArrowRight size={22} />
               </button>
-              <a href="#attestation-log" className="btn btn-secondary" style={{ padding: '1.25rem 3.5rem', fontSize: '1.2rem', textDecoration: 'none' }}>
-                <Search size={22} /> Explore Attestations
-              </a>
             </motion.div>
-          </motion.div>
+          </div>
         </div>
       </section>
       
@@ -544,54 +539,7 @@ export function Hero({ onStart }: HeroProps) {
         </div>
       </section>
 
-      {/* 8. Live Network Activity */}
-      <section id="registry" style={{ padding: '5rem 0', background: 'transparent' }} className="section-reveal">
-        <div className="container">
-          <div className="text-center mb-20 section-reveal">
-            <h2 style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '1.5rem' }}>
-              <span className="section-title-glow">Proof Attestation Log</span>
-            </h2>
-            <p style={{ color: 'var(--text-dim)', fontSize: '1.3rem', maxWidth: '700px', margin: '0 auto' }}>Live verification of web state across the L1 network.</p>
-          </div>
-          <div className="glass-card" style={{ padding: '1.5rem', overflowX: 'auto', maxWidth: '1000px', margin: '0 auto', background: 'rgba(5, 8, 22, 0.85)' }}>
-             <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
-               <thead>
-                 <tr style={{ borderBottom: '1px solid var(--glass-border)', color: 'var(--text-dim)' }}>
-                   <th style={{ padding: '1.5rem', fontWeight: 700, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Data Source</th>
-                   <th style={{ padding: '1.5rem', fontWeight: 700, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Attestation</th>
-                   <th style={{ padding: '1.5rem', fontWeight: 700, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>ZKP Status</th>
-                   <th style={{ padding: '1.5rem', fontWeight: 700, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Action</th>
-                 </tr>
-               </thead>
-               <tbody>
-                 {[
-                   { source: 'HDFC Bank', type: 'Balance Attestation', tx: '0x8a...f1', color: 'var(--primary)' },
-                   { source: 'LinkedIn', type: 'Employment Status', tx: '0x32...e9', color: 'var(--secondary)' },
-                   { source: 'UIDAI', type: 'Personhood Proof', tx: '0x9c...4a', color: 'var(--accent)' }
-                 ].map((item, idx) => (
-                   <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)', cursor: 'pointer' }}>
-                     <td style={{ padding: '1.5rem' }}>
-                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                         <div style={{ width: 10, height: 10, borderRadius: '2px', background: item.color, boxShadow: `0 0 10px ${item.color}` }}></div>
-                         <span style={{ fontWeight: 600 }}>{item.source}</span>
-                       </div>
-                     </td>
-                     <td style={{ padding: '1.5rem', color: 'var(--text-dim)' }}>{item.type}</td>
-                     <td style={{ padding: '1.5rem' }}>
-                       <span style={{ color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '0.35rem 0.85rem', borderRadius: '100px', fontSize: '0.75rem', fontWeight: 700, border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-                         VERIFIED
-                       </span>
-                     </td>
-                     <td style={{ padding: '1.5rem', fontFamily: 'JetBrains Mono, monospace', color: 'var(--primary)', fontSize: '0.9rem' }}>
-                       {item.tx}
-                     </td>
-                   </tr>
-                 ))}
-               </tbody>
-             </table>
-          </div>
-        </div>
-      </section>
+
 
       {/* 9. Final Call-To-Action */}
       <section style={{ padding: '5rem 0 2rem 0', background: 'transparent', borderTop: '1px solid rgba(108, 59, 255, 0.08)' }}>

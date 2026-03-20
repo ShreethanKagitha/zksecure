@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { ParticleBackground } from './components/ParticleBackground';
+
 import { ShieldCheck, Check, FileText, Network, Database, Globe, Copy, ExternalLink, LogOut, ChevronDown, LayoutDashboard } from 'lucide-react';
 import { useState, Suspense, lazy } from 'react';
 import { useWallet } from '@txnlab/use-wallet-react';
@@ -25,15 +25,15 @@ function MainLayout({ children, wallet, onDisconnect }: any) {
 
   return (
     <>
-      <ParticleBackground />
+      {/* WebGL Particle Canvas Disabled due to severe GPU bottleneck reported by user */}
       <div className="bg-mesh">
         <div className="aurora-blob blob-1"></div>
         <div className="aurora-blob blob-2"></div>
         <div className="aurora-blob blob-3"></div>
       </div>
-      <div className="hero-glow-orb"></div>
-      <div className="hero-glow-orb-2"></div>
-      <div className="ambient-hero-glow"></div>
+      
+      {/* Background glow orbs and ambient movement animations completely removed to stop browser lag */}
+      
       <div className="bg-grid"></div>
       <div className="noise-overlay"></div>
       
@@ -53,7 +53,6 @@ function MainLayout({ children, wallet, onDisconnect }: any) {
           <div className="nav-links">
             <a href="/#protocol" className={`nav-link ${location.hash === '#protocol' ? 'active' : ''}`}>Protocol</a>
             <a href="/#network" className={`nav-link ${location.hash === '#network' ? 'active' : ''}`}>Network</a>
-            <a href="/#registry" className={`nav-link ${location.hash === '#registry' ? 'active' : ''}`}>Registry</a>
             <button onClick={() => navigate('/docs')} className={`nav-link ${location.pathname === '/docs' ? 'active' : ''}`} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Docs</button>
           </div>
 
