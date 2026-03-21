@@ -33,6 +33,7 @@ const verificationSchema = new mongoose.Schema({
   status: { type: String, required: true },
   condition: { type: String, required: true },
   txId: { type: String, default: null },
+  proofHash: { type: String, default: null },
   timestamp: { type: Date, default: Date.now },
   // STRICT ZK PRIVACY: No balance, input, or raw witness fields exist in this schema.
 });
@@ -226,6 +227,7 @@ app.post('/verify', async (req, res) => {
       status,
       condition,
       txId: generatedTxId,
+      proofHash: proofHash,
       timestamp: new Date()
     };
     

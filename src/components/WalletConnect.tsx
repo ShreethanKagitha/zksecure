@@ -31,7 +31,7 @@ export function WalletConnect({ onConnected }: WalletConnectProps) {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       className="glass-card" 
-      style={{ maxWidth: '480px', width: '100%', textAlign: 'center', padding: '4rem 3rem', margin: '0 auto' }}
+      style={{ maxWidth: '650px', width: '100%', textAlign: 'center', padding: '4rem 4rem', margin: '0 auto' }}
     >
       <div style={{ position: 'relative', width: '100px', height: '100px', margin: '0 auto 2.5rem auto' }}>
         <div style={{ 

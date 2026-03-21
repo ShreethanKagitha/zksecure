@@ -35,6 +35,7 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
   const [isFetchingData, setIsFetchingData] = useState(false);
   const [zkResult, setZkResult] = useState<ZKResponse | null>(null);
   const [onChainId, setOnChainId] = useState<string | null>(null);
+  const [proofHash, setProofHash] = useState<string | null>(null);
 
   const handleDigiLockerFetch = async () => {
     setIsFetchingData(true);
@@ -136,6 +137,7 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
       setProgress(100);
       
       setOnChainId(data.txId || null);
+      setProofHash(data.proofHash || null);
       
       await new Promise(r => setTimeout(r, 600));
       setStep('done');
@@ -390,6 +392,10 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
                     </a>
                   )}
                 </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', marginBottom: '1.5rem' }}>
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-dim)' }}>PROOF HASH</span>
+                <span style={{ fontSize: '0.9rem', fontFamily: 'monospace', fontWeight: 700, color: 'white' }}>{proofHash ? `${proofHash.substring(0, 16)}...` : 'N/A'}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0', borderBottom: 'none', marginBottom: '0' }}>
                 <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-dim)' }}>PROOF VALIDITY</span>

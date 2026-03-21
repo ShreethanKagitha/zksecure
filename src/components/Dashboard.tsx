@@ -169,13 +169,14 @@ export function Dashboard({ walletAddress, onStartVerify }: DashboardProps) {
            </div>
         ) : (
           <div className="w-full">
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1.5fr) 2fr 1.5fr', padding: '1rem 1.5rem', borderBottom: '1px solid var(--glass-border)', opacity: 0.5, fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.1em' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(150px, 1fr) 1.5fr 1.5fr 1fr', padding: '1rem 1.5rem', borderBottom: '1px solid var(--glass-border)', opacity: 0.5, fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.1em' }}>
               <div>STATUS</div>
               <div>CONDITION</div>
+              <div>PROOF HASH</div>
               <div style={{ textAlign: 'right' }}>TIMESTAMP</div>
             </div>
             {verificationHistory.map((item, idx) => (
-              <div key={idx} style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1.5fr) 2fr 1.5fr', padding: '1.5rem', borderBottom: '1px solid var(--glass-border)', fontSize: '1rem', alignItems: 'center' }} className="hover-item">
+              <div key={idx} style={{ display: 'grid', gridTemplateColumns: 'minmax(150px, 1fr) 1.5fr 1.5fr 1fr', padding: '1.5rem', borderBottom: '1px solid var(--glass-border)', fontSize: '1rem', alignItems: 'center' }} className="hover-item">
                 
                 <div>
                   <span 
@@ -192,6 +193,10 @@ export function Dashboard({ walletAddress, onStartVerify }: DashboardProps) {
                 </div>
                 
                 <div style={{ fontWeight: 600, color: 'white' }}>{item.condition}</div>
+
+                <div style={{ fontFamily: 'monospace', color: 'var(--primary)', fontWeight: 600 }}>
+                  {item.proofHash ? `${item.proofHash.substring(0, 10)}...` : 'N/A'}
+                </div>
                 
                 <div style={{ color: 'var(--text-dim)', textAlign: 'right', fontSize: '0.9rem', fontFamily: 'monospace' }}>
                    {new Date(item.timestamp).toLocaleString()}

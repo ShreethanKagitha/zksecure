@@ -142,7 +142,7 @@ function MainLayout({ children, wallet, onDisconnect }: any) {
       <main className="main-content">
         {location.pathname === '/connect' && (
           <div className="w-full animate-in" style={{ animationDuration: '0.4s', marginBottom: '3rem' }}>
-            <div className="steps-container" style={{ maxWidth: '600px', margin: '0 auto' }}>
+            <div className="steps-container" style={{ maxWidth: '800px', margin: '0 auto' }}>
               <div className="steps-progress-line" style={{ width: '50%', left: '15%' }}></div>
               <div className="step completed">
                 <div className="step-circle"><Check size={20} /></div>
