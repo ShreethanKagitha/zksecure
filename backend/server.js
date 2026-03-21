@@ -34,6 +34,7 @@ const verificationSchema = new mongoose.Schema({
   condition: { type: String, required: true },
   txId: { type: String, default: null },
   proofHash: { type: String, default: null },
+  nullifier: { type: String, default: null, unique: true, sparse: true },
   timestamp: { type: Date, default: Date.now },
   // STRICT ZK PRIVACY: No balance, input, or raw witness fields exist in this schema.
 });
@@ -54,9 +55,9 @@ app.get('/secure-fetch', async (req, res) => {
   // Simulate network delay for TLS handshake
   await new Promise(r => setTimeout(r, 1500));
   
-  // Random balance roughly around testing requirements
-  const randomBalance = Math.floor(Math.random() * 80000) + 10000; // 10k to 90k
-  const payloadData = { balance: randomBalance };
+  // Lock balance dynamically so testing Sybil tests work across the same account mappings 
+  const staticBalance = 75000; 
+  const payloadData = { balance: staticBalance, issuer: "HDFC" };
   
   // Cryptographically secure the exact JSON
   const dataString = JSON.stringify(payloadData);
@@ -125,8 +126,36 @@ app.post('/verify', async (req, res) => {
     return res.status(403).json({ error: "Invalid TLS Signature! Cryptographic Data integrity compromised." });
   }
   
-  console.log(`[POST /verify] Signature Valid! Proceeding to ZK logic...`);
+  console.log(`[POST /verify] Signature Valid! Proceeding to Sybil protections...`);
   const balance = data.balance;
+  const issuer = data.issuer || "UNKNOWN_ISSUER";
+  
+  // -- SYBIL ATTACK PROTECTION LAYER -- //
+  // 1. Generate Identity Hash (balance + issuer + salt)
+  const salt = process.env.ZKTLS_SALT || "ZK_SECURE_RND_SALT_2026";
+  const identityHashSign = crypto.createHash('sha256');
+  identityHashSign.update(balance.toString() + issuer + salt);
+  const identityHash = identityHashSign.digest('hex');
+
+  // 2. Generate Nullifier (identityHash + applicationId)
+  const applicationId = process.env.APP_ID || "ZKTLS_DEMO_APP_1";
+  const nullifierSign = crypto.createHash('sha256');
+  nullifierSign.update(identityHash + applicationId);
+  const nullifier = nullifierSign.digest('hex');
+
+  // 3. Database Integrity Check
+  try {
+    const existingEntry = await Verification.findOne({ nullifier: nullifier });
+    if (existingEntry) {
+      console.warn(`[POST /verify] SYBIL ATTACK PREVENTED: Nullifier ${nullifier} reused!`);
+      return res.status(403).json({ error: "Identity already used", nullifier });
+    }
+  } catch (dbError) {
+    console.error("Nullifier DB Check failed...", dbError);
+  }
+
+  // Pass Nullifier as simulated public abstraction mapping downstream!
+  console.log(`[POST /verify] Identity Unique! Nullifier Generated: ${nullifier.substring(0,10)}... \nExecuting ZK Circuit Logic...`);
   
   let status = "NOT VERIFIED";
   let proofHash = null;
@@ -228,6 +257,7 @@ app.post('/verify', async (req, res) => {
       condition,
       txId: generatedTxId,
       proofHash: proofHash,
+      nullifier: nullifier,
       timestamp: new Date()
     };
     
@@ -239,6 +269,7 @@ app.post('/verify', async (req, res) => {
       condition: newVerification.condition,
       txId: newVerification.txId,
       proofHash,
+      nullifier,
       timestamp: newVerification.timestamp.toISOString()
     });
   } catch (error) {

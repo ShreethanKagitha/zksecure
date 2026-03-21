@@ -18,7 +18,8 @@ export function Dashboard({ walletAddress, onStartVerify }: DashboardProps) {
   useEffect(() => {
     if (walletAddress) {
       setLoadingHistory(true);
-      fetch(`http://localhost:5000/history/${walletAddress}`)
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      fetch(`${API_URL}/history/${walletAddress}`)
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {

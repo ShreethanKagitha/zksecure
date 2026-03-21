@@ -40,7 +40,8 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
   const handleDigiLockerFetch = async () => {
     setIsFetchingData(true);
     try {
-        const res = await fetch('http://localhost:5000/secure-fetch');
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const res = await fetch(`${API_URL}/secure-fetch`);
         const json = await res.json();
         setMockCredential(json);
     } catch (e) {
@@ -87,7 +88,9 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
       
       const proveInterval = setInterval(() => setProgress(prev => Math.min(prev + 3, 95)), 50);
       
-      const response = await fetch('http://localhost:5000/verify', {
+      console.log("Preparing cryptographic transcript verification package for the server...");
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/verify`, {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
          body: JSON.stringify({ 
@@ -321,9 +324,13 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
                <strong style={{ color: '#ef4444', fontSize: '1.1rem' }}>Condition: Balance &ge; ₹50,000</strong>
             </div>
             <p style={{ maxWidth: '600px', margin: '0 auto 3.5rem auto', fontSize: '1.1rem', color: 'var(--text-dim)', lineHeight: 1.6 }}>
-              The zero-knowledge proof generation or network relay failed, or the primary condition was not met. <br />
+              {zkResult?.error === "Identity already used" 
+                 ? "This digital identity footprint has already been linked and securely minted to another active wallet session. Duplicate interactions are blocked."
+                 : "The zero-knowledge proof generation or network relay failed, or the primary condition was not met."}
+              <br />
               <strong style={{ color: 'var(--primary)', marginTop: '1rem', display: 'block' }}>
-                {zkResult?.error === "Condition Failed: Balance is less than required ₹50,000." ? "Proof invalid: Condition not met." : "Condition Not Met or Network Error"}
+                {zkResult?.error === "Identity already used" ? "Identity already used" 
+                 : (zkResult?.error === "Condition Failed: Balance is less than required ₹50,000." ? "Proof invalid: Condition not met." : "Condition Not Met or Network Error")}
               </strong>
             </p>
             <button className="btn btn-secondary" onClick={() => setStep('select')} style={{ padding: '1rem 3rem' }}>
