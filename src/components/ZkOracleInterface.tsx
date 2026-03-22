@@ -7,6 +7,7 @@ import { fetchWeb2BankData } from '../lib/web2DataService';
 import { Terminal } from './Terminal';
 
 const PROVIDERS = [
+  { id: 'digilocker', name: 'DigiLocker Authority', icon: ShieldAlert, color: '#10b981', description: 'Fetch official Govt/Bank credentials completely anonymously' },
   { id: 'bank', name: 'Financial Assets', icon: Database, color: 'var(--primary)', description: 'Verify liquidity > ₹50,000 via HDFC bank session' },
   { id: 'aadhaar', name: 'Digital Identity', icon: ShieldAlert, color: 'var(--primary)', description: 'Prove 18+ personhood without revealing PII' },
   { id: 'linkedin', name: 'Professional Tier', icon: Briefcase, color: 'var(--primary)', description: 'Verify "Senior Developer" status at top-tier org' },
@@ -41,7 +42,7 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
     setIsFetchingData(true);
     try {
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        const res = await fetch(`${API_URL}/secure-fetch`);
+        const res = await fetch(`${API_URL}/digilocker/fetch`);
         const json = await res.json();
         setMockCredential(json);
     } catch (e) {
@@ -199,7 +200,7 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
                  }}
               >
                  <Lock size={18} /> 
-                 {isFetchingData ? "Establishing Encrypted Output..." : mockCredential ? "Document fetched securely & cryptographically signed" : "Generate Signature Identity API"}
+                 {isFetchingData ? "Establishing Encrypted Output..." : mockCredential ? "Verified document fetched securely" : "Connect DigiLocker"}
               </button>
 
               <p style={{ fontSize: '0.85rem', marginTop: '1rem', color: 'var(--text-dim)', background: 'rgba(108, 59, 255, 0.05)', padding: '0.75rem 1rem', borderRadius: '8px', borderLeft: '3px solid var(--primary)' }}>

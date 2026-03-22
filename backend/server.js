@@ -79,11 +79,26 @@ app.get('/digilocker/fetch', async (req, res) => {
   // Simulate network delay for OAuth flow
   await new Promise(r => setTimeout(r, 1200));
   
-  return res.json({
+  // Random balance for the new DigiLocker credentials
+  const randomBalance = Math.floor(Math.random() * 80000) + 10000;
+  const payloadData = {
      documentType: "BankStatement",
-     balance: 72000,
-     issuer: "HDFC",
+     balance: randomBalance,
+     issuer: "DigiLocker",
      verified: true
+  };
+  
+  // Cryptographically secure the exact JSON
+  const dataString = JSON.stringify(payloadData);
+  const sign = crypto.createSign('SHA256');
+  sign.update(dataString);
+  sign.end();
+  
+  const signature = sign.sign(privateKey, 'base64');
+  
+  return res.json({
+     data: payloadData,
+     signature
   });
 });
 
@@ -222,8 +237,9 @@ app.post('/verify', async (req, res) => {
         // Explicitly map exactly the generated Proof Hash + public variables natively to L1 blocks
         const onChainPayload = JSON.stringify({
             proofHash: proofHash,
-            publicSignals: exportedPublicSignals,
-            result: status
+            nullifier: nullifier,
+            result: status,
+            source: data.issuer || "DigiLocker"
         });
         const noteArray = new Uint8Array(Buffer.from(onChainPayload));
 
