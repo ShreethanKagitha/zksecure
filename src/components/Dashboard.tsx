@@ -1,4 +1,4 @@
-import { History, PlusCircle, ShieldCheck, Database, AlertCircle, Award, ExternalLink, Zap, Clock } from 'lucide-react';
+import { History, PlusCircle, ShieldCheck, Database, AlertCircle, Award, ExternalLink, Zap, Clock, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { ProofExplorer } from './ProofExplorer';
@@ -14,6 +14,39 @@ export function Dashboard({ walletAddress, onStartVerify }: DashboardProps) {
 
   const [verificationHistory, setVerificationHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
+
+  // Mock global live proofs for the explorer
+  const [liveProofs, setLiveProofs] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Initialize mock global proofs
+    const initialProofs = Array.from({ length: 5 }).map((_, i) => generateMockLiveProof(i));
+    setLiveProofs(initialProofs);
+
+    // Simulate real-time proofs coming in
+    const interval = setInterval(() => {
+      setLiveProofs(prev => {
+        const newProof = generateMockLiveProof(Date.now());
+        return [newProof, ...prev.slice(0, 4)];
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const generateMockLiveProof = (seed: number) => {
+    const addresses = ["0x8a...f1", "0x32...e9", "0x9c...4d", "0x11...bb", "0x77...aa"];
+    const actions = ["Verified Bank Balance", "Verified GitHub Commits", "Verified Twitter Followers", "Verified Age > 18", "Verified Binance Liquidity"];
+    const randomAddress = addresses[Math.floor(Math.random() * addresses.length)];
+    const randomAction = actions[Math.floor(Math.random() * actions.length)];
+    return {
+      id: seed,
+      address: randomAddress,
+      action: randomAction,
+      time: 'Just now',
+      hash: Math.random().toString(36).substring(2, 10).toUpperCase()
+    };
+  };
 
   useEffect(() => {
     if (walletAddress) {
@@ -156,10 +189,11 @@ export function Dashboard({ walletAddress, onStartVerify }: DashboardProps) {
         </div>
       </div>
 
-      <div className="glass-card" style={{ padding: '2.5rem' }}>
-        <div className="card-title" style={{ marginBottom: '2rem' }}>
-          <History size={24} color="var(--primary)" /> Verification History
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem' }}>
+        <div className="glass-card" style={{ padding: '2.5rem', flex: 1 }}>
+          <div className="card-title" style={{ marginBottom: '2rem' }}>
+            <History size={24} color="var(--primary)" /> Verification History
+          </div>
         
         {loadingHistory ? (
            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-dim)' }}>Loading history...</div>
@@ -206,6 +240,43 @@ export function Dashboard({ walletAddress, onStartVerify }: DashboardProps) {
             ))}
           </div>
         )}
+      </div>
+
+        {/* Global Live Proof Explorer Sidebar */}
+        <div className="glass-card" style={{ padding: '2rem', height: 'fit-content' }}>
+          <div className="card-title" style={{ marginBottom: '1.5rem', fontSize: '1.1rem' }}>
+            <Globe size={20} color="var(--primary)" /> Global Oracle Network
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {liveProofs.map((proof) => (
+              <motion.div 
+                key={proof.id}
+                initial={{ opacity: 0, x: -20, height: 0 }}
+                animate={{ opacity: 1, x: 0, height: 'auto' }}
+                style={{ 
+                  background: 'rgba(5, 5, 5, 0.6)', 
+                  border: '1px solid rgba(255, 255, 255, 0.05)', 
+                  borderRadius: '12px', 
+                  padding: '1rem' 
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', alignItems: 'center' }}>
+                  <span style={{ fontFamily: 'monospace', color: 'var(--primary)', fontWeight: 600, fontSize: '0.9rem' }}>{proof.address}</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                    <Zap size={10} color="#10b981" /> {proof.time}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.85rem', color: 'white', fontWeight: 500, marginBottom: '0.5rem' }}>
+                  {proof.action}
+                </div>
+                <div style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--text-dim)', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Hash: {proof.hash}</span>
+                  <span style={{ color: '#10b981' }}>VERIFIED</span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div style={{ marginTop: '3rem', display: 'flex', justifyContent: 'center' }}>
