@@ -12,6 +12,7 @@ import Docs from './pages/Docs';
 const WalletConnect = lazy(() => import('./components/WalletConnect').then(m => ({ default: m.WalletConnect })));
 const Dashboard = lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
 const ZkOracleInterface = lazy(() => import('./components/ZkOracleInterface').then(m => ({ default: m.ZkOracleInterface })));
+const SybilSimulator = lazy(() => import('./pages/SybilSimulator'));
 
 function MainLayout({ children, wallet, onDisconnect }: any) {
   const navigate = useNavigate();
@@ -39,21 +40,17 @@ function MainLayout({ children, wallet, onDisconnect }: any) {
       
       <nav className="navbar">
         <div className="container">
-          <div className="nav-brand" onClick={() => handleNav('landing')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <ShieldCheck size={28} color="var(--primary)" fill="rgba(108, 59, 255, 0.2)" />
-              <div className="live-indicator">
-                <div className="live-dot"></div>
-                <span className="live-text">LIVE</span>
-              </div>
-            </div>
-            <span style={{ letterSpacing: '-0.02em', fontWeight: 900, marginLeft: '0.75rem' }}>ZK<span style={{ color: 'var(--primary)' }}>SECURE</span></span>
+          <div className="nav-brand" onClick={() => handleNav('landing')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <ShieldCheck size={26} color="var(--primary)" fill="rgba(108, 59, 255, 0.15)" />
+            <span style={{ letterSpacing: '-0.02em', fontWeight: 800 }}>ZK<span style={{ color: 'var(--text-dim)' }}>SECURE</span></span>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 10px #10b981', marginLeft: '0.25rem' }}></div>
           </div>
 
           <div className="nav-links">
             <a href="/#protocol" className={`nav-link ${location.hash === '#protocol' ? 'active' : ''}`}>Protocol</a>
+            <button onClick={() => navigate('/sybil-defense')} className={`nav-link ${location.pathname === '/sybil-defense' ? 'active' : ''}`} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>Sybil Defense</button>
             <a href="/#network" className={`nav-link ${location.hash === '#network' ? 'active' : ''}`}>Network</a>
-            <button onClick={() => navigate('/docs')} className={`nav-link ${location.pathname === '/docs' ? 'active' : ''}`} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Docs</button>
+            <button onClick={() => navigate('/docs')} className={`nav-link ${location.pathname === '/docs' ? 'active' : ''}`} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>Docs</button>
           </div>
 
           <div>
@@ -253,6 +250,12 @@ function App() {
         <Route path="/docs" element={
           <MainLayout wallet={activeAddress} onDisconnect={handleDisconnect}>
             <Docs />
+          </MainLayout>
+        } />
+        
+        <Route path="/sybil-defense" element={
+          <MainLayout wallet={activeAddress} onDisconnect={handleDisconnect}>
+            <SybilSimulator />
           </MainLayout>
         } />
       </Routes>

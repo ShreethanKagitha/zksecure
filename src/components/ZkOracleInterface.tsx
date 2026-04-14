@@ -7,10 +7,10 @@ import { fetchWeb2BankData } from '../lib/web2DataService';
 import { Terminal } from './Terminal';
 
 const PROVIDERS = [
-  { id: 'bank', name: 'HDFC Bank Liquidity', icon: Database, color: 'var(--primary)', description: 'Prove Liquid Balance ≥ ₹50,000 without revealing account details.', condition: 'Balance &ge; ₹50,000', apiParam: { balance: 65000 }, threshold: 50000 },
-  { id: 'github', name: 'GitHub P1 Dev', icon: Cpu, color: '#10b981', description: 'Prove > 500 lifetime commits without revealing repositories.', condition: 'Commits &ge; 500', apiParam: { balance: 620 }, threshold: 500 },
+  { id: 'bank', name: 'HDFC Bank Liquidity', icon: Database, color: 'var(--primary)', description: 'Prove Liquid Balance ≥ ₹50,000 without revealing account details.', condition: 'Balance ≥ ₹50,000', apiParam: { balance: 65000 }, threshold: 50000 },
+  { id: 'github', name: 'GitHub P1 Dev', icon: Cpu, color: '#10b981', description: 'Prove > 500 lifetime commits without revealing repositories.', condition: 'Commits ≥ 500', apiParam: { balance: 620 }, threshold: 500 },
   { id: 'aadhaar', name: 'Identity Oracle', icon: ShieldAlert, color: 'var(--primary)', description: 'Prove Age > 18 years without revealing Document ID.', condition: 'Age > 18', apiParam: { balance: 22 }, threshold: 18 },
-  { id: 'twitter', name: 'Social Influence', icon: Share2, color: 'var(--primary)', description: 'Prove > 10,000 Followers for influencer pre-sale access.', condition: 'Followers &ge; 10,000', apiParam: { balance: 14500 }, threshold: 10000 },
+  { id: 'twitter', name: 'Social Influence', icon: Share2, color: 'var(--primary)', description: 'Prove > 10,000 Followers for influencer pre-sale access.', condition: 'Followers ≥ 10,000', apiParam: { balance: 14500 }, threshold: 10000 },
 ];
 
 interface Provider {
@@ -163,21 +163,21 @@ export function ZkOracleInterface({ walletAddress, onComplete, onBackToDashboard
   };
 
   return (
-    <div className="animate-in w-full">
-      <div className="flex-row items-center gap-6 mb-10">
+    <div className="animate-in w-full" style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem' }}>
+      <div className="flex-row items-center mb-10" style={{ gap: '1.5rem' }}>
         <button className="btn btn-secondary" onClick={() => {
           if (step === 'connect') setStep('select');
           else onBackToDashboard();
-        }} style={{ padding: '0', borderRadius: '50%', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        }} style={{ padding: '0', borderRadius: '50%', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <ArrowLeft size={24} />
         </button>
         <div>
-          <h2 style={{ marginBottom: '0.25rem', fontSize: '2rem', fontWeight: 800 }}>zkTLS-inspired verification pipeline</h2>
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-dim)', fontWeight: 600 }}>OPERATION: {step.toUpperCase()} | Sensitive data is processed locally and never exposed</p>
+          <h2 style={{ marginBottom: '0.25rem', fontSize: '2.2rem', fontWeight: 800, lineHeight: 1.1 }}>zkTLS-inspired verification pipeline</h2>
+          <p style={{ fontSize: '0.9rem', color: 'var(--text-dim)', fontWeight: 600, marginTop: '0.5rem' }}>OPERATION: {step.toUpperCase()} | Sensitive data is processed locally and never exposed</p>
         </div>
       </div>
 
-      <div className="glass-card w-full" style={{ maxWidth: '900px', margin: '0 auto', padding: '3.5rem' }}>
+      <div className="glass-card w-full" style={{ padding: '3.5rem' }}>
         {step === 'select' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div style={{ textAlign: 'center', marginBottom: '4rem' }}>

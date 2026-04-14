@@ -79,12 +79,12 @@ app.get('/digilocker/fetch', async (req, res) => {
   // Simulate network delay for OAuth flow
   await new Promise(r => setTimeout(r, 1200));
   
-  // Random balance for the new DigiLocker credentials
-  const randomBalance = Math.floor(Math.random() * 80000) + 10000;
+  // Hardcoded balance to guarantee successful verification during demonstrations
+  const randomBalance = 90000;
   const payloadData = {
      documentType: "BankStatement",
-     balance: randomBalance,
-     issuer: "DigiLocker",
+     balance: 90000,
+     issuer: "DigiLocker-" + Math.random().toString(36).substring(7),
      verified: true
   };
   
